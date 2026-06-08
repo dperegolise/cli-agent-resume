@@ -1,0 +1,9 @@
+dist/
+node_modules/
+.claude/worktrees/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+.env.local

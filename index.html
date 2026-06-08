@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daniel Peregolise — Developer Portfolio</title>
+
+  <!-- JetBrains Mono via Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Nerd Font symbols subset for powerline glyphs and tree icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@fontsource/symbols-nerd-font@5.0.0/index.css"
+  />
+
+  <style>
+    /* ── CSS Reset & Base ── */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    /* Flash-of-wrong-color prevention — overridden immediately by applyThemeCSSVars() in index.ts */
+    body { background: #1d2021; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-main, #1d2021);
+      color: var(--fg-main, #ebdbb2);
+      font-family: 'JetBrains Mono', 'Symbols Nerd Font', monospace;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    /* ── App root: three-panel grid ── */
+    #app {
+      display: grid;
+      grid-template-columns: 320px 1px 1fr;
+      grid-template-rows: 1fr 1px 220px;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Panels ── */
+    .panel {
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── Left panel: agent shell (full height, spans both rows) ── */
+    #agent-shell {
+      grid-column: 1;
+      grid-row: 1 / 4;
+      background: var(--bg-main);
+      overflow: hidden;
+    }
+
+    /* ── Vertical divider ── */
+    #divider-vertical {
+      grid-column: 2;
+      grid-row: 1 / 4;
+      background: var(--tmux-green, #44ff88);
+      width: 1px;
+      cursor: col-resize;
+    }
+
+    /* ── Right panel container ── */
+    #right-panel {
+      grid-column: 3;
+      grid-row: 1;
+      display: grid;
+      grid-template-rows: 1fr 1px 3fr;
+      overflow: hidden;
+    }
+
+    /* ── File explorer (top-right) ── */
+    #file-explorer {
+      grid-row: 1;
+      background: var(--bg-main);
+      overflow-y: auto;
+      padding: 4px 0;
+    }
+
+    /* ── Horizontal divider (inside right panel) ── */
+    #divider-horizontal {
+      grid-row: 2;
+      background: var(--tmux-green, #44ff88);
+      height: 1px;
+      cursor: row-resize;
+    }
+
+    /* ── Vim editor container (bottom-right) ── */
+    #vim-editor-container {
+      grid-row: 3;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-main);
+      overflow: hidden;
+    }
+
+    #vim-editor {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    #powerline-status-bar {
+      flex-shrink: 0;
+      height: 24px;
+    }
+
+    /* ── Bottom divider ── */
+    #divider-bottom {
+      grid-column: 2 / 4;
+      grid-row: 2;
+      background: var(--tmux-green, #44ff88);
+      height: 1px;
+      cursor: row-resize;
+    }
+
+    /* ── CLI drawer (bottom) ── */
+    #cli-drawer {
+      grid-column: 2 / 4;
+      grid-row: 3;
+      background: var(--bg-main);
+      overflow: hidden;
+    }
+
+    /* ── Hamburger menu (hidden on desktop, shown on mobile) ── */
+    #hamburger-menu {
+      display: none;
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 1001;
+      width: 44px;
+      height: 44px;
+      padding: 8px;
+      background: transparent;
+      border: 1px solid var(--fg-main, #ebdbb2);
+      color: var(--fg-main, #ebdbb2);
+      font-size: 20px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-family: inherit;
+    }
+
+    /* ── Mobile sidebar (hidden on desktop) ── */
+    #mobile-sidebar {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 280px;
+      height: 100%;
+      z-index: 1000;
+      background: var(--bg-main, #1d2021);
+      border-right: 1px solid var(--tmux-green, #44ff88);
+      overflow-y: auto;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease-out;
+    }
+
+    #mobile-sidebar.sidebar-open {
+      transform: translateX(0);
+    }
+
+    /* CSS custom properties are set exclusively by applyThemeCSSVars() in src/theme.ts.
+       index.html owns NO color values — theme.ts is the single source of truth. */
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Left panel: AI Agent Shell (full height) -->
+    <div id="agent-shell" class="panel left-panel">
+      <!-- xterm.js AgentTerminal mounts here (m3) -->
+    </div>
+
+    <!-- Vertical divider -->
+    <div id="divider-vertical" class="divider vertical"></div>
+
+    <!-- Right panel: file explorer + vim editor -->
+    <div id="right-panel" class="panel right-panel">
+      <!-- NERDTree-style file explorer (top ~25%) -->
+      <div id="file-explorer" class="panel top-panel">
+        <!-- NERDTree DOM tree renders here (m4) -->
+      </div>
+
+      <!-- Horizontal divider (inside right panel) -->
+      <div id="divider-horizontal" class="divider horizontal"></div>
+
+      <!-- Vim editor container (bottom ~75%) -->
+      <div id="vim-editor-container" class="panel bottom-panel">
+        <!-- CodeMirror 6 mounts here (m4) -->
+        <div id="vim-editor"></div>
+        <!-- Powerline status bar (m4) -->
+        <div id="powerline-status-bar" class="powerline"></div>
+      </div>
+    </div>
+
+    <!-- Bottom horizontal divider -->
+    <div id="divider-bottom" class="divider horizontal"></div>
+
+    <!-- CLI drawer (bottom, collapsible) -->
+    <div id="cli-drawer" class="panel cli-drawer">
+      <!-- xterm.js CLITerminal mounts here (m5) -->
+    </div>
+  </div>
+
+  <!-- Mobile hamburger button (shown via media query / JS) -->
+  <button id="hamburger-menu" class="hamburger" aria-label="Toggle file explorer">☰</button>
+
+  <!-- Mobile sidebar (position: fixed, slides in from left) -->
+  <aside id="mobile-sidebar" class="sidebar-drawer">
+    <!-- Mobile file explorer copy (m2) -->
+    <div id="mobile-file-explorer"></div>
+  </aside>
+
+  <!-- App entry point -->
+  <script type="module" src="/src/index.ts"></script>
+</body>
+</html>
