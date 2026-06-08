@@ -108,6 +108,11 @@ export class InputHandler {
   }
 
   private handleEnter(): void {
+    // FIX 4: Ignore Enter while streaming — user must use Ctrl+C to abort
+    if (this.sseClient.isStreaming) {
+      return;
+    }
+
     const line = this.lineBuffer.trim();
     this.terminal.write('\r\n');
     this.lineBuffer = '';
@@ -226,6 +231,9 @@ export class InputHandler {
 
   private navigateHistory(direction: -1 | 1): void {
     if (this.history.length === 0) return;
+
+    // FIX 6: Down from draft position (historyIndex === -1) is a no-op
+    if (this.historyIndex === -1 && direction === 1) return;
 
     if (this.historyIndex === -1 && direction === -1) {
       // Starting navigation — save current draft

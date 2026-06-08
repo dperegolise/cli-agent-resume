@@ -10,6 +10,8 @@ import { WebLinksAddon } from '@xterm/addon-web-links';
 import { toXtermTheme } from '../theme.js';
 import { bus, EVENT_TYPES } from '../bus.js';
 import type { ThemeConfig, ThemeChangeEvent } from '../types.js';
+import type { ThemeManager } from '../theme.js';
+import type { SSEClient } from './sseClient.js';
 
 // ─── AgentTerminal ────────────────────────────────────────────────────────────
 
@@ -17,12 +19,30 @@ export class AgentTerminal {
   private readonly term: Terminal;
   private readonly fitAddon: FitAddon;
   private readonly webLinksAddon: WebLinksAddon;
+  private readonly themeManager: ThemeManager;
+  private sseClient?: SSEClient;
   private resizeObserver: ResizeObserver | null = null;
   private unsubscribeTheme: (() => void) | null = null;
 
-  constructor(initialTheme: ThemeConfig) {
+  constructor(initialTheme: ThemeConfig, themeManager: ThemeManager) {
+    this.themeManager = themeManager;
     this.fitAddon = new FitAddon();
-    this.webLinksAddon = new WebLinksAddon();
+
+    // FIX 2: WebLinksAddon with custom handler for agent:query: URIs
+    this.webLinksAddon = new WebLinksAddon((_event, uri) => {
+      if (uri.startsWith('agent:query:')) {
+        try {
+          const query = decodeURIComponent(uri.slice('agent:query:'.length));
+          if (this.sseClient) {
+            void this.sseClient.sendMessage(query);
+          }
+        } catch {
+          // ignore decode errors
+        }
+      } else {
+        window.open(uri, '_blank');
+      }
+    });
 
     this.term = new Terminal({
       fontFamily: '"JetBrains Mono", "JetBrainsMono Nerd Font", monospace',
@@ -37,6 +57,14 @@ export class AgentTerminal {
 
     this.term.loadAddon(this.fitAddon);
     this.term.loadAddon(this.webLinksAddon);
+  }
+
+  /**
+   * Set the SSEClient reference so OSC 8 link clicks can route to sendMessage.
+   * Call this after constructing the SSEClient.
+   */
+  setSseClient(client: SSEClient): void {
+    this.sseClient = client;
   }
 
   /**
@@ -64,17 +92,18 @@ export class AgentTerminal {
     // Also fit on window resize (belt-and-suspenders)
     window.addEventListener('resize', this._onWindowResize);
 
-    // Subscribe to theme changes
+    // FIX 1: Subscribe to theme changes — use themeName to look up and apply the new theme.
+    // The emitter (cmdTheme) already called themeManager.setTheme(), so getTheme() returns
+    // the new theme. We just re-read and apply it to xterm directly (no double setTheme).
     this.unsubscribeTheme = bus.subscribe<ThemeChangeEvent>(
       EVENT_TYPES.THEME_CHANGE,
-      (payload) => {
-        // ThemeChangeEvent only carries themeName; we need the full ThemeConfig.
-        // Re-import lazily to avoid circular deps. Theme is applied in caller via
-        // the ThemeManager; here we receive the pre-resolved ThemeConfig via the
-        // bus payload.
-        const evt = payload as ThemeChangeEvent & { theme?: ThemeConfig };
-        if (evt.theme) {
-          this.term.options.theme = toXtermTheme(evt.theme);
+      (evt) => {
+        if (evt.themeName) {
+          try {
+            this.term.options.theme = toXtermTheme(this.themeManager.getTheme());
+          } catch {
+            // ignore
+          }
         }
       },
     );

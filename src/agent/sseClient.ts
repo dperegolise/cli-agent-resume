@@ -109,8 +109,9 @@ export class SSEClient {
     this.currentAbortController = new AbortController();
     this.streaming = true;
 
-    // ── POST request ───────────────────────────────────────────────────────
+    // ── POST request (FIX 5: 30-second timeout) ────────────────────────────
     let response: Response;
+    const timeoutId = setTimeout(() => this.currentAbortController?.abort(), 30_000);
     try {
       response = await fetch(AGENT_ENDPOINT, {
         method: 'POST',
@@ -122,11 +123,12 @@ export class SSEClient {
         signal: this.currentAbortController.signal,
       });
     } catch (err) {
+      clearTimeout(timeoutId);
       this.streaming = false;
       this.currentAbortController = null;
 
       if (err instanceof Error && err.name === 'AbortError') {
-        // Silently handled in abort()
+        // Silently handled in abort() or by timeout
         return;
       }
 
@@ -139,6 +141,8 @@ export class SSEClient {
       this.terminal.write('\r\nagent> ');
       log.error('fetch failed', err);
       return;
+    } finally {
+      clearTimeout(timeoutId);
     }
 
     // ── Check ban header ───────────────────────────────────────────────────
@@ -148,7 +152,25 @@ export class SSEClient {
       log.warn('Client banned until', bannedUntilHeader);
     }
 
-    if (!response.ok && response.status !== 429) {
+    // FIX 3: Explicit 429 handler — must be checked BEFORE the generic !response.ok check
+    // to avoid falling through to streamSSE() which throws "Response body is null"
+    if (response.status === 429) {
+      const banUntil = response.headers.get('X-Client-Banned-Until');
+      if (banUntil) {
+        localStorage.setItem(BAN_STORAGE_KEY, banUntil);
+      }
+      const banUntilStr = localStorage.getItem(BAN_STORAGE_KEY);
+      const timeStr = banUntilStr
+        ? new Date(parseInt(banUntilStr, 10)).toLocaleTimeString()
+        : 'later';
+      this.terminal.writeln(ANSI_RED + `Rate limit exceeded. Try again after ${timeStr}.` + ANSI_RESET);
+      this.terminal.write('\r\nagent> ');
+      this.streaming = false;
+      this.currentAbortController = null;
+      return;
+    }
+
+    if (!response.ok) {
       this.streaming = false;
       this.currentAbortController = null;
       this.terminal.writeln(

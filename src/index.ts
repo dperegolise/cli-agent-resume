@@ -56,12 +56,14 @@ export async function main(): Promise<void> {
   }
 
   // ── Mount Agent Shell (m3) ───────────────────────────────────────────────
-  const terminal = new AgentTerminal(themeManager.getTheme());
+  const terminal = new AgentTerminal(themeManager.getTheme(), themeManager);
   agentTerminal = terminal;
 
   terminal.mount(agentShellEl);
 
   const sseClient = new SSEClient(terminal);
+  // Wire sseClient reference for OSC 8 link click routing (FIX 2)
+  terminal.setSseClient(sseClient);
   const inputHandler = new InputHandler(terminal, sseClient);
 
   inputHandler.attach();
