@@ -12,8 +12,12 @@ const entryIndex: Map<string, ManifestEntry> = new Map();
 
 // ─── Path validation ──────────────────────────────────────────────────────────
 
-/** Valid path pattern: lowercase alphanumeric, slashes, dashes, underscores, .md extension */
-const VALID_PATH_RE = /^[a-z0-9/_-]+\.md$/;
+/**
+ * Valid path pattern: one or more path segments (lowercase alphanumeric, dashes, underscores)
+ * separated by single forward slashes, ending in .md.
+ * Rejects: leading slash, trailing slash, double slashes, empty segments (e.g. a/.md, a//b.md).
+ */
+const VALID_PATH_RE = /^[a-z0-9_-]+(?:\/[a-z0-9_-]+)*\.md$/;
 
 function isValidPathFormat(p: string): boolean {
   return VALID_PATH_RE.test(p);

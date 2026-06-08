@@ -39,9 +39,9 @@ const gruvboxTheme = EditorView.theme(
       backgroundColor: GRUVBOX_DARK.colors.selection,
     },
     '.cm-gutters': {
-      backgroundColor: '#282828',
-      color: '#928374',
-      borderRight: '1px solid #504945',
+      backgroundColor: GRUVBOX_DARK.colors.ansi[0],   // #282828 black
+      color: GRUVBOX_DARK.colors.ansi[8],              // #928374 bright-black (gray)
+      borderRight: `1px solid ${GRUVBOX_DARK.colors.selection}`,
     },
     '.cm-activeLineGutter': {
       backgroundColor: '#3c3836',
@@ -52,17 +52,17 @@ const gruvboxTheme = EditorView.theme(
     '.cm-scroller': {
       overflow: 'auto',
     },
-    // Markdown syntax colors (Gruvbox)
-    '.cm-header': { color: '#fb4934', fontWeight: 'bold' },
-    '.cm-header-1': { color: '#fb4934' },
-    '.cm-header-2': { color: '#fabd2f' },
-    '.cm-header-3': { color: '#b8bb26' },
-    '.cm-strong': { color: '#ebdbb2', fontWeight: 'bold' },
-    '.cm-em': { color: '#d3869b', fontStyle: 'italic' },
-    '.cm-link': { color: '#83a598' },
-    '.cm-url': { color: '#8ec07c' },
-    '.cm-quote': { color: '#928374' },
-    '.cm-monospace': { color: '#8ec07c', fontFamily: "'JetBrains Mono', monospace" },
+    // Markdown syntax colors — sourced from GRUVBOX_DARK theme palette
+    '.cm-header': { color: GRUVBOX_DARK.colors.ansi[9], fontWeight: 'bold' },   // bright-red
+    '.cm-header-1': { color: GRUVBOX_DARK.colors.ansi[9] },                     // bright-red
+    '.cm-header-2': { color: GRUVBOX_DARK.colors.ansi[11] },                    // bright-yellow
+    '.cm-header-3': { color: GRUVBOX_DARK.colors.ansi[10] },                    // bright-green
+    '.cm-strong': { color: GRUVBOX_DARK.colors.fg, fontWeight: 'bold' },
+    '.cm-em': { color: GRUVBOX_DARK.colors.ansi[13], fontStyle: 'italic' },     // bright-magenta
+    '.cm-link': { color: GRUVBOX_DARK.colors.ansi[12] },                        // bright-blue
+    '.cm-url': { color: GRUVBOX_DARK.colors.ansi[14] },                         // bright-cyan
+    '.cm-quote': { color: GRUVBOX_DARK.colors.ansi[8] },                        // bright-black
+    '.cm-monospace': { color: GRUVBOX_DARK.colors.ansi[14], fontFamily: "'JetBrains Mono', monospace" }, // bright-cyan
     // vim status line area
     '.cm-vim-panel': { display: 'none' },  // hide default vim panel; we use our own
   },
@@ -284,6 +284,7 @@ export class VimEditor {
       Vim.map('D', '<Nop>', 'normal');
       Vim.map('x', '<Nop>', 'normal');
       Vim.map('X', '<Nop>', 'normal');
+      Vim.map('J', '<Nop>', 'normal');  // join-lines (read-only: no-op)
     } catch (err) {
       // Non-fatal — some Vim versions may not support all overrides
       console.warn('[VimEditor] Could not patch all vim commands:', err);

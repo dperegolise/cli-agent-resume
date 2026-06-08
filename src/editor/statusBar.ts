@@ -69,7 +69,7 @@ const CSS = `
 }
 
 .powerline-mode[data-mode="VISUAL"] {
-  background: #8ec07c;
+  background: #83a598;
   color: #282828;
 }
 
@@ -98,7 +98,7 @@ const CSS = `
   background: var(--bg-main, #1d2021);
 }
 .powerline-sep-mode-visual {
-  color: #8ec07c;
+  color: #83a598;
   background: var(--bg-main, #1d2021);
 }
 
@@ -259,7 +259,7 @@ export class PowerlineBar {
         scrollPct = Math.round((lineNum / totalLines) * 100);
       }
     }
-    scrollPct = Math.max(0, Math.min(100, scrollPct));
+    scrollPct = Math.max(0, Math.min(100, scrollPct)) || 0;  // guard against NaN
 
     return { lineNum, colNum, scrollPct };
   }
