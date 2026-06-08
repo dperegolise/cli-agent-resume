@@ -1,0 +1,11 @@
+# routr — completions-only proxy
+# Note: fastapi>=0.136.1 requires pydantic>=2.9.0 (supersedes strategy pin of 2.7.4)
+fastapi==0.136.1
+uvicorn[standard]==0.40.0
+httpx==0.28.1
+pydantic>=2.9.0
+python-dotenv==1.0.1
+
+# Dev/test
+pytest>=8.2
+pytest-asyncio>=0.24.0
