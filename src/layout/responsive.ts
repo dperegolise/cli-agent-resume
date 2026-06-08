@@ -118,11 +118,16 @@ export class MobileLayout {
 /**
  * DrawerToggle manages the collapsible #cli-drawer.
  *
- * - Clicking #drawer-toggle (or #divider-bottom) toggles .collapsed on #cli-drawer
+ * The drawer lives in row 3 of #app's CSS grid. Setting height:0 on the drawer
+ * element alone leaves the 220px grid track as a ghost gap. We therefore toggle
+ * .drawer-collapsed on #app, which collapses the grid track itself via CSS
+ * (grid-template-rows: 1fr 0 0). The drawer height follows automatically.
+ *
+ * - Clicking #drawer-toggle (or #divider-bottom) toggles collapse
  * - Ctrl+` (backtick) keyboard shortcut does the same
  */
 export class DrawerToggle {
-  private drawerEl: HTMLElement | null = null;
+  private appEl: HTMLElement | null = null;
 
   /**
    * Initialise the drawer toggle.
@@ -130,7 +135,7 @@ export class DrawerToggle {
    * and a global keydown listener for Ctrl+`.
    */
   init(): void {
-    this.drawerEl = document.getElementById('cli-drawer');
+    this.appEl = document.getElementById('app');
 
     const toggleBar =
       document.getElementById('drawer-toggle') ??
@@ -147,24 +152,28 @@ export class DrawerToggle {
     });
   }
 
-  /** Toggle the collapsed state of the drawer. */
+  /**
+   * Toggle the collapsed state of the drawer.
+   * Toggles .drawer-collapsed on #app so the CSS grid track collapses,
+   * eliminating the ghost gap that height:0 on the drawer alone would leave.
+   */
   toggle(): void {
-    this.drawerEl?.classList.toggle('collapsed');
+    this.appEl?.classList.toggle('drawer-collapsed');
   }
 
-  /** Collapse the drawer. */
+  /** Collapse the drawer (removes ghost gap via grid track). */
   collapse(): void {
-    this.drawerEl?.classList.add('collapsed');
+    this.appEl?.classList.add('drawer-collapsed');
   }
 
-  /** Expand the drawer. */
+  /** Expand the drawer (restores 220px grid track). */
   expand(): void {
-    this.drawerEl?.classList.remove('collapsed');
+    this.appEl?.classList.remove('drawer-collapsed');
   }
 
   /** Returns true when the drawer is currently collapsed. */
   isCollapsed(): boolean {
-    return this.drawerEl?.classList.contains('collapsed') ?? false;
+    return this.appEl?.classList.contains('drawer-collapsed') ?? false;
   }
 }
 

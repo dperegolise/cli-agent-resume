@@ -156,12 +156,29 @@ body {
   grid-row: 3;
   background: var(--bg-main);
   overflow: hidden;
-  height: 220px;
-  transition: height 0.15s ease;
+  /* height is governed by the #app grid track; do not set a fixed height here */
 }
 
-#cli-drawer.collapsed {
-  height: 0;
+/* ─── Drawer collapse: shrink the grid track, not just the element ─────────
+   Setting height:0 on #cli-drawer alone leaves the 220px grid row as a ghost
+   gap. We must collapse the row itself on #app.                              */
+
+#app {
+  transition: grid-template-rows 0.15s ease;
+}
+
+/* When drawer is collapsed, drop row 3 (220px) and row 2 divider (1px) to 0 */
+#app.drawer-collapsed {
+  grid-template-rows: 1fr 0 0;
+}
+
+#app.drawer-collapsed #drawer-toggle {
+  /* Hide the toggle bar itself when collapsed so it doesn't leave a 1px line */
+  opacity: 0;
+  pointer-events: none;
+}
+
+#app.drawer-collapsed #cli-drawer {
   overflow: hidden;
 }
 
