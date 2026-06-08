@@ -1,7 +1,7 @@
 /**
  * src/index.ts — Application entry point
  * Initializes theme, loads manifest, and mounts all panels.
- * Wires: m2-layout, m3-agent-shell, m4-vim-panel, m5-cli-drawer (stub for m5).
+ * Wires: m2-layout, m3-agent-shell, m4-vim-panel, m5-cli-drawer.
  */
 
 import { ThemeManager, applyThemeCSSVars } from './theme.js';
@@ -12,7 +12,7 @@ import { AgentTerminal } from './agent/terminal.js';
 import { SSEClient } from './agent/sseClient.js';
 import { printMOTD } from './agent/motd.js';
 import { InputHandler } from './agent/inputHandler.js';
-import { initCLIDrawer } from './panels/cli-drawer.js';
+import { CLITerminal } from './drawer/terminal.js';
 import { initVimEditor } from './editor/vim.js';
 import { initFileExplorerPanel } from './explorer/tree.js';
 import { initLayout } from './layout/responsive.js';
@@ -25,6 +25,9 @@ export const themeManager = new ThemeManager('gruvbox-dark');
 
 /** AgentTerminal singleton (for HMR cleanup). */
 let agentTerminal: AgentTerminal | null = null;
+
+/** CLI Terminal instance (kept for cleanup). */
+let cliTerminal: CLITerminal | null = null;
 
 /**
  * Wire the ThemeManager into the event bus.
@@ -104,8 +107,9 @@ export async function main(): Promise<void> {
   initVimEditor(vimEditorEl, powerlineEl);
   log.info('Vim editor mounted');
 
-  // ── CLI drawer (stub — m5 will replace) ─────────────────────────────────
-  initCLIDrawer({ element: cliDrawerEl });
+  // ── CLI drawer terminal (m5) ─────────────────────────────────────────────
+  cliTerminal = new CLITerminal(themeManager);
+  cliTerminal.mount(cliDrawerEl);
 
   log.info('All panels mounted', { manifestEntries: manifest?.entries.length ?? 0 });
 }
@@ -117,6 +121,8 @@ export function onUnload(): void {
   log.debug('HMR unload');
   agentTerminal?.dispose();
   agentTerminal = null;
+  cliTerminal?.dispose();
+  cliTerminal = null;
   // Clear bus listeners on HMR to prevent handler accumulation
   bus.clear();
 }
