@@ -1,7 +1,7 @@
 /**
  * src/bus.ts — Cross-panel event bus
- * STUB: owned by milestone m4-vim-panel.
- * Exports stubs with correct type signatures so other modules can import without errors.
+ * Real implementation: simple Map-based pub/sub singleton.
+ * Owned by milestone m4-vim-panel.
  */
 
 import type {
@@ -34,23 +34,65 @@ export interface EventPayloads {
   'search:results': SearchResultsEvent;
 }
 
-// ─── EventBus class (stub — full implementation in m4) ────────────────────────
+// ─── EventBus class ───────────────────────────────────────────────────────────
+
+type HandlerFn = (payload: unknown) => void;
 
 export class EventBus {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  emit<T>(_eventType: string, _payload: T): void {
-    // m4 will implement
+  /** Map of event type → set of listener functions. */
+  private readonly listeners: Map<string, Set<HandlerFn>> = new Map();
+
+  /**
+   * Emit an event to all subscribers.
+   * Iterates a snapshot so handlers can safely unsubscribe during emission.
+   */
+  emit<T>(eventType: string, payload: T): void {
+    const handlers = this.listeners.get(eventType);
+    if (!handlers || handlers.size === 0) return;
+    for (const handler of Array.from(handlers)) {
+      try {
+        handler(payload as unknown);
+      } catch (err) {
+        console.error(`[EventBus] Error in handler for "${eventType}":`, err);
+      }
+    }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  subscribe<T>(_eventType: string, _callback: (_payload: T) => void): () => void {
-    // m4 will implement; return a no-op unsubscribe
-    return () => {};
+  /**
+   * Subscribe to an event.
+   * Returns an unsubscribe function — call it to remove the listener.
+   */
+  subscribe<T>(eventType: string, callback: (payload: T) => void): () => void {
+    if (!this.listeners.has(eventType)) {
+      this.listeners.set(eventType, new Set());
+    }
+    const handler = callback as HandlerFn;
+    this.listeners.get(eventType)!.add(handler);
+    return () => {
+      this.listeners.get(eventType)?.delete(handler);
+    };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  once<T>(_eventType: string, _callback: (_payload: T) => void): void {
-    // m4 will implement
+  /**
+   * Subscribe to exactly one emission, then auto-unsubscribe.
+   */
+  once<T>(eventType: string, callback: (payload: T) => void): void {
+    const unsub = this.subscribe<T>(eventType, (payload) => {
+      unsub();
+      callback(payload);
+    });
+  }
+
+  /**
+   * Remove all listeners for a given event type, or all events if omitted.
+   * Useful for cleanup / hot module reload.
+   */
+  clear(eventType?: string): void {
+    if (eventType) {
+      this.listeners.delete(eventType);
+    } else {
+      this.listeners.clear();
+    }
   }
 }
 
