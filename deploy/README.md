@@ -61,7 +61,7 @@ OPENROUTER_API_KEY=sk-or-v1-...
 OPENROUTER_MODELS=mistralai/mistral-7b-instruct:free,meta-llama/llama-3-8b-instruct:free
 
 # HuggingFace Inference API (second-priority provider)
-HF_API_KEY=hf_...
+HUGGINGFACE_API_KEY=hf_...
 HF_MODELS=mistralai/Mistral-7B-Instruct-v0.2
 
 # ── routr (existing live instance on this host) ─────────────────────────────
@@ -346,7 +346,7 @@ curl http://127.0.0.1:8000/health
   Ban list is in-memory and resets on server restart — acceptable for VPS, document for ops.
 - **`focus_item` paths are validated** against the manifest before any SSE event is emitted.
 - **`.env` must not be committed** — it is listed in `.gitignore`.
-- Regularly rotate `OPENROUTER_API_KEY` and `HF_API_KEY` if you suspect exposure.
+- Regularly rotate `OPENROUTER_API_KEY` and `HUGGINGFACE_API_KEY` if you suspect exposure.
 
 ---
 

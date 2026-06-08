@@ -42,6 +42,8 @@ echo ""
 echo "=== [3/4] Setting up Python virtualenv ==="
 cd "$REPO_ROOT"
 
+sudo chown -R "$(whoami)":"$(whoami)" "$DEPLOY_DIR"
+
 if [ ! -d "$DEPLOY_DIR/.venv" ]; then
     echo "Creating new virtualenv at ${DEPLOY_DIR}/.venv"
     python3 -m venv "$DEPLOY_DIR/.venv"
