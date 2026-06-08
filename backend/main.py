@@ -128,17 +128,32 @@ async def agent_endpoint(request: Request, body: AgentRequest) -> StreamingRespo
     messages = [{"role": m.role, "content": m.content} for m in body.messages]
 
     async def _stream():
+        _done_sent = False
         try:
             async for event in run_agent(messages, body.session_id):
                 yield _sse_event(event)
-                if event.get("type") in ("done", "error"):
+                if event.get("type") == "done":
+                    # run_agent already sent "done"; mark it so the finally block
+                    # skips its safety-net yield — Strategy §5: "done" exactly once.
+                    _done_sent = True
+                    return
+                if event.get("type") == "error":
+                    # run_agent sent "error"; exit the loop but leave _done_sent=False
+                    # so the finally block still appends a "done" frame. Clients
+                    # expect the stream to always terminate with "done".
                     return
         except Exception as exc:
             logger.exception("Unhandled error in agent stream")
             yield _sse_event({"type": "error", "message": str(exc)})
+            # Leave _done_sent=False so finally emits the closing "done" frame.
         finally:
-            # Always end with a done event if we haven't already sent one
-            yield _sse_event({"type": "done"})
+            # Emit "done" as the closing frame unless run_agent already sent one.
+            # Python async generators execute finally even on a clean return, so
+            # without the _done_sent guard we would double-emit "done" on the
+            # happy path.  On error paths we always get here with _done_sent=False
+            # and emit one final "done" to close the stream cleanly.
+            if not _done_sent:
+                yield _sse_event({"type": "done"})
 
     return StreamingResponse(
         _stream(),

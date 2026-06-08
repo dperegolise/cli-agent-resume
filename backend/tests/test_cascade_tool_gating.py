@@ -7,11 +7,15 @@ The test mocks the HTTP client so no real network calls are made.
 It drives the cascade so that OpenRouter and HuggingFace both fail,
 forcing a fall-through to the routr tier, then asserts the HTTP
 payload sent to routr contains NO 'tools' key.
+
+Also tests the SSE stream endpoint: strategy §5 specifies that the
+"done" event must be sent exactly once per stream, regardless of path.
 """
 
 import sys
 import os
 import json
+from typing import AsyncIterator, Dict, Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -188,3 +192,60 @@ async def test_openrouter_receives_tools_when_available():
     body = captured.get("body", {})
     assert "tools" in body, "OpenRouter payload should include 'tools'"
     assert body["tools"] == SAMPLE_TOOLS
+
+
+# ── SSE stream: exactly-one-done tests ───────────────────────────────────────
+
+def _parse_sse_events(raw: str):
+    """Parse raw SSE body into a list of event dicts."""
+    events = []
+    for chunk in raw.strip().split("\n\n"):
+        for line in chunk.splitlines():
+            if line.startswith("data: "):
+                try:
+                    events.append(json.loads(line[6:]))
+                except json.JSONDecodeError:
+                    pass
+    return events
+
+
+def test_done_event_emitted_exactly_once_on_happy_path():
+    """
+    Strategy §5: the 'done' SSE event must be sent EXACTLY ONCE per stream.
+
+    On the happy path run_agent yields [token, done]. The _stream() finally block
+    must NOT emit a second done event, even though Python async generators still
+    execute finally on a clean return.
+    """
+    import rate_limiter
+    import manifest as manifest_module
+    from fastapi.testclient import TestClient
+    from main import app
+
+    rate_limiter.reset_state()
+
+    # Minimal manifest so the agent can start
+    manifest_module._entries.clear()
+    manifest_module._contents.clear()
+    manifest_module._loaded = True
+
+    async def _fake_run_agent(messages, session_id):
+        yield {"type": "token", "content": "hi"}
+        yield {"type": "done"}
+
+    client = TestClient(app, raise_server_exceptions=False)
+    with patch("main.run_agent", _fake_run_agent):
+        resp = client.post(
+            "/agent",
+            json={
+                "messages": [{"role": "user", "content": "hello"}],
+                "session_id": "exactly-one-done-test",
+            },
+        )
+
+    assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
+    events = _parse_sse_events(resp.text)
+    done_events = [e for e in events if e.get("type") == "done"]
+    assert len(done_events) == 1, (
+        f"Expected exactly 1 'done' event, got {len(done_events)}: {events}"
+    )
