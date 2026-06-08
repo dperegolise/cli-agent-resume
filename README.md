@@ -49,7 +49,7 @@ AGENT_BAN_DURATION_HOURS=24
 
 ```bash
 source .venv/bin/activate
-uvicorn backend.main:app --host 127.0.0.1 --port 8001 --reload
+cd backend && uvicorn main:app --host 127.0.0.1 --port 8001 --reload
 ```
 
 ### 4. Start the frontend dev server
@@ -110,8 +110,7 @@ uvicorn src.routr.main:app --host 127.0.0.1 --port 8000 --reload
 
 ```bash
 source .venv/bin/activate
-cd backend
-pytest tests/ -v
+pytest backend/tests/ -v
 ```
 
 85 tests, all green (unit + adversarial).
