@@ -1,17 +1,19 @@
 /**
  * Edge-case path tests: subtle bypasses the regex might miss
+ * Updated to use the tightened VALID_PATH_RE from FIX 7 (m3-fix):
+ *   /^[a-z0-9][a-z0-9_-]*(?:\/[a-z0-9][a-z0-9_-]*)*\.md$/
+ * This rejects leading slashes, empty segments, and segment-starting dashes/underscores.
  */
 
-const VALID_PATH_RE = /^[a-z0-9/_-]+\.md$/;
+const VALID_PATH_RE = /^[a-z0-9][a-z0-9_-]*(?:\/[a-z0-9][a-z0-9_-]*)*\.md$/;
 
 function isValidPathFormat(p) {
   if (typeof p !== 'string') return false;
   return VALID_PATH_RE.test(p);
 }
 
-// The regex /^[a-z0-9/_-]+\.md$/ uses [a-z0-9/_-] which includes underscore and hyphen.
-// Notably it does NOT include '.', so path traversal ("../") is blocked at the char level.
-// But let's verify subtle bypass attempts:
+// The tightened regex requires each segment to start with [a-z0-9], preventing
+// leading slashes, empty segments, and path traversal at the char level.
 
 const edgeCases = [
   // These should all REJECT
@@ -47,7 +49,7 @@ console.log(`\n${pass} passed, ${fail} failed`);
 console.log('\n--- Regex analysis ---');
 const dotTests = ['a.b/file.md', 'a..b/file.md', '..b/file.md', 'a../file.md'];
 for (const t of dotTests) {
-  console.log(`  ${JSON.stringify(t)} => ${VALID_PATH_RE.test(t)}`);
+  console.log(`  ${JSON.stringify(t)} => ${VALID_PATH_RE.test(t)} (expected: false)`);
 }
 
 if (fail > 0) process.exit(1);

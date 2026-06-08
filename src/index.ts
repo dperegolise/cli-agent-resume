@@ -1,13 +1,17 @@
 /**
  * src/index.ts — Application entry point
  * Initializes theme, loads manifest, and mounts all panels.
+ * Wires: m2-layout, m3-agent-shell, m4-vim-panel, m5-cli-drawer (stub for m5).
  */
 
 import { ThemeManager, applyThemeCSSVars } from './theme.js';
 import { loadManifest } from './manifest.js';
 import { bus, EVENT_TYPES } from './bus.js';
 import { createLogger } from './utils/logging.js';
-import { initAgentShell } from './panels/agent-shell.js';
+import { AgentTerminal } from './agent/terminal.js';
+import { SSEClient } from './agent/sseClient.js';
+import { printMOTD } from './agent/motd.js';
+import { InputHandler } from './agent/inputHandler.js';
 import { initCLIDrawer } from './panels/cli-drawer.js';
 import { initVimEditor } from './editor/vim.js';
 import { initFileExplorerPanel } from './explorer/tree.js';
@@ -18,6 +22,9 @@ const log = createLogger('index');
 
 /** Shared theme manager instance — passed to all panels. */
 export const themeManager = new ThemeManager('gruvbox-dark');
+
+/** AgentTerminal singleton (for HMR cleanup). */
+let agentTerminal: AgentTerminal | null = null;
 
 /**
  * Wire the ThemeManager into the event bus.
@@ -69,21 +76,35 @@ export async function main(): Promise<void> {
   const layout = initLayout();
   log.info('Layout initialised', { isMobile: layout.mobile.isMobile() });
 
-  // Mount agent shell (stub — m3 will replace)
-  initAgentShell({ element: agentShellEl });
+  // ── Mount Agent Shell (m3) ───────────────────────────────────────────────
+  const terminal = new AgentTerminal(themeManager.getTheme(), themeManager);
+  agentTerminal = terminal;
 
-  // File explorer (m4): loads manifest, renders NERDTree
+  terminal.mount(agentShellEl);
+
+  const sseClient = new SSEClient(terminal);
+  // Wire sseClient reference for OSC 8 link click routing
+  terminal.setSseClient(sseClient);
+  const inputHandler = new InputHandler(terminal, sseClient);
+
+  inputHandler.attach();
+  printMOTD(terminal, sseClient);
+  terminal.focus();
+
+  log.info('AgentTerminal mounted on #agent-shell');
+
+  // ── File explorer (m4): loads manifest, renders NERDTree ────────────────
   void initFileExplorerPanel(fileExplorerEl).then(() => {
     log.info('File explorer mounted');
   }).catch((err: unknown) => {
     log.error('File explorer failed to mount', err);
   });
 
-  // Vim editor (m4): CodeMirror 6 + vim keybindings, read-only
+  // ── Vim editor (m4): CodeMirror 6 + vim keybindings, read-only ──────────
   initVimEditor(vimEditorEl, powerlineEl);
   log.info('Vim editor mounted');
 
-  // Mount CLI drawer (stub — m5 will replace)
+  // ── CLI drawer (stub — m5 will replace) ─────────────────────────────────
   initCLIDrawer({ element: cliDrawerEl });
 
   log.info('All panels mounted', { manifestEntries: manifest?.entries.length ?? 0 });
@@ -94,6 +115,8 @@ export async function main(): Promise<void> {
  */
 export function onUnload(): void {
   log.debug('HMR unload');
+  agentTerminal?.dispose();
+  agentTerminal = null;
   // Clear bus listeners on HMR to prevent handler accumulation
   bus.clear();
 }
