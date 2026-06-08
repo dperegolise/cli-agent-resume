@@ -237,9 +237,9 @@ body {
   background: rgba(0, 0, 0, 0.5);
 }
 
-/* ─── Mobile media query (< 768px) ────────────────────────────────────────── */
+/* ─── Mobile media query (≤ 767.98px — matches JS matchMedia breakpoint) ──── */
 
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   /* Collapse to single column */
   #app {
     grid-template-columns: 1fr;

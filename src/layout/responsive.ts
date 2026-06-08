@@ -2,19 +2,20 @@
  * src/layout/responsive.ts — Mobile breakpoint logic
  * Manages hamburger menu, mobile sidebar, backdrop, and drawer collapse.
  *
- * MobileLayout handles viewports < 768px:
+ * MobileLayout handles viewports ≤ 767.98px:
  *   - Shows hamburger button
  *   - Slides in file explorer as an overlay sidebar
  *   - Shows/hides backdrop
- *   - Resets styles when viewport returns to ≥ 768px
+ *   - Resets styles when viewport returns to > 767.98px
  *
  * DrawerToggle handles the collapsible #cli-drawer:
  *   - Click on #drawer-toggle / #divider-bottom toggles .collapsed
  *   - Ctrl+` keyboard shortcut also toggles
  */
 
-/** Mobile breakpoint in pixels (matches CSS @media query). */
-const MOBILE_BREAKPOINT = 768;
+/** Mobile breakpoint in pixels (matches CSS @media query). Use fractional value
+ *  to avoid integer-rounding ambiguity on high-DPI screens. */
+const MOBILE_BREAKPOINT_PX = '767.98px';
 
 /**
  * MobileLayout manages the responsive hamburger + sidebar behaviour.
@@ -34,7 +35,7 @@ export class MobileLayout {
   private _open = false;
 
   constructor() {
-    this.mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+    this.mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX})`);
   }
 
   /**
@@ -70,7 +71,7 @@ export class MobileLayout {
     // MediaQueryList change listener
     this.mq.addEventListener('change', (e) => {
       if (!e.matches) {
-        // Viewport grew ≥ 768px — reset mobile state
+        // Viewport grew > 767.98px — reset mobile state
         this.close();
       }
     });
@@ -124,8 +125,13 @@ export class MobileLayout {
  * (grid-template-rows: 1fr 0 0). The drawer height follows automatically.
  *
  * - Clicking #drawer-toggle (or #divider-bottom) toggles collapse
- * - Ctrl+` (backtick) keyboard shortcut does the same
+ * - Ctrl+` (backtick) keyboard shortcut does the same (not fired in editable fields)
  */
+
+/** Module-level reference to the current keydown handler. Enables HMR-safe
+ *  re-initialisation: the old listener is removed before the new one is added. */
+let _keydownHandler: ((e: KeyboardEvent) => void) | null = null;
+
 export class DrawerToggle {
   private appEl: HTMLElement | null = null;
 
@@ -133,6 +139,9 @@ export class DrawerToggle {
    * Initialise the drawer toggle.
    * Attaches click listener to #drawer-toggle (falls back to #divider-bottom)
    * and a global keydown listener for Ctrl+`.
+   *
+   * Safe to call multiple times (e.g. on Vite HMR): the previous keydown
+   * listener is removed before a new one is registered, preventing accumulation.
    */
   init(): void {
     this.appEl = document.getElementById('app');
@@ -143,13 +152,25 @@ export class DrawerToggle {
 
     toggleBar?.addEventListener('click', () => this.toggle());
 
-    // Ctrl+` keyboard shortcut
-    document.addEventListener('keydown', (e) => {
+    // HMR guard: remove any previously-registered keydown handler first
+    if (_keydownHandler) {
+      document.removeEventListener('keydown', _keydownHandler);
+    }
+
+    // Ctrl+` keyboard shortcut — skip when the user is typing in an editable field
+    _keydownHandler = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === '`') {
+        const tag = (e.target as HTMLElement).tagName;
+        const isEditable =
+          tag === 'INPUT' ||
+          tag === 'TEXTAREA' ||
+          (e.target as HTMLElement).isContentEditable;
+        if (isEditable) return;
         e.preventDefault();
         this.toggle();
       }
-    });
+    };
+    document.addEventListener('keydown', _keydownHandler);
   }
 
   /**
