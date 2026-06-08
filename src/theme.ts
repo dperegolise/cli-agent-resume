@@ -31,6 +31,7 @@ const gruvboxDarkColors: ThemeColors = {
     '#8ec07c', // 14 bright-cyan
     '#ebdbb2', // 15 bright-white
   ],
+  accentColor: '#44ff88', // bright green — the classic tmux divider color
 };
 
 export const GRUVBOX_DARK: ThemeConfig = {
@@ -63,6 +64,7 @@ const nordColors: ThemeColors = {
     '#8fbcbb', // 14 bright-cyan
     '#eceff4', // 15 bright-white
   ],
+  accentColor: '#88c0d0', // Nord cyan/ice-blue — the signature Nord accent
 };
 
 export const NORD: ThemeConfig = {
@@ -95,6 +97,7 @@ const tokyoNightColors: ThemeColors = {
     '#7dcfff', // 14 bright-cyan
     '#c0caf5', // 15 bright-white
   ],
+  accentColor: '#7aa2f7', // Tokyo Night blue — the primary UI accent
 };
 
 export const TOKYO_NIGHT: ThemeConfig = {
@@ -122,7 +125,7 @@ export function applyThemeCSSVars(theme: ThemeConfig): void {
   const root = document.documentElement;
   const c = theme.colors;
 
-  root.style.setProperty('--tmux-green', '#44ff88');
+  root.style.setProperty('--tmux-green', c.accentColor);
   root.style.setProperty('--bg-main', c.bg);
   root.style.setProperty('--fg-main', c.fg);
   root.style.setProperty('--cursor', c.cursor);

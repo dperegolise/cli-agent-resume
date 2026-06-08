@@ -21,8 +21,6 @@ export interface ManifestEntry {
 
 export interface Manifest {
   entries: ManifestEntry[];
-  /** ISO 8601 timestamp of when the manifest was built. */
-  buildDate: string;
   /** Schema version, currently "1.0". */
   version: string;
 }
@@ -45,6 +43,9 @@ export interface ThemeColors {
     string, string, string, string, string, string, string, string,
     string, string, string, string, string, string, string, string,
   ];
+  /** Accent color used for tmux-style dividers and UI highlights.
+   *  Varies per theme so dividers match the active palette. */
+  accentColor: string;
 }
 
 export interface ThemeConfig {

@@ -24,7 +24,6 @@ function validateManifest(data) {
   return (
     Array.isArray(m['entries']) &&
     m['entries'].every(validateEntry) &&
-    typeof m['buildDate'] === 'string' &&
     typeof m['version'] === 'string'
   );
 }
@@ -60,7 +59,6 @@ const validEntry = {
 
 const validManifest = {
   entries: [validEntry],
-  buildDate: '2026-06-08T00:00:00.000Z',
   version: '1.0'
 };
 
@@ -70,16 +68,16 @@ test('Valid manifest passes', () => assert(validateManifest(validManifest)));
 test('null rejected', () => assert(!validateManifest(null)));
 test('Array rejected', () => assert(!validateManifest([validEntry])));
 test('Empty string rejected', () => assert(!validateManifest('')));
-test('Missing entries rejected', () => assert(!validateManifest({ buildDate: '2026', version: '1.0' })));
-test('entries=null rejected', () => assert(!validateManifest({ entries: null, buildDate: '2026', version: '1.0' })));
-test('Missing buildDate rejected', () => assert(!validateManifest({ entries: [], version: '1.0' })));
-test('Missing version rejected', () => assert(!validateManifest({ entries: [], buildDate: '2026' })));
-test('buildDate=42 rejected', () => assert(!validateManifest({ entries: [], buildDate: 42, version: '1.0' })));
-test('Empty entries array valid', () => assert(validateManifest({ entries: [], buildDate: '2026', version: '1.0' })));
+test('Missing entries rejected', () => assert(!validateManifest({ version: '1.0' })));
+test('entries=null rejected', () => assert(!validateManifest({ entries: null, version: '1.0' })));
+test('buildDate field ignored (removed from schema)', () => assert(validateManifest({ entries: [], version: '1.0' })));
+test('Missing version rejected', () => assert(!validateManifest({ entries: [] })));
+test('version=42 rejected', () => assert(!validateManifest({ entries: [], version: 42 })));
+test('Empty entries array valid', () => assert(validateManifest({ entries: [], version: '1.0' })));
 
 // ─── Prototype pollution ───────────────────────────────────────────────────────
 test('Prototype-polluted object rejected', () => {
-  const evil = JSON.parse('{"__proto__":{"entries":[],"buildDate":"x","version":"1"}}');
+  const evil = JSON.parse('{"__proto__":{"entries":[],"version":"1"}}');
   // The evil object won't have own entries, so should fail
   assert(!validateManifest(evil), 'Should reject prototype pollution');
 });

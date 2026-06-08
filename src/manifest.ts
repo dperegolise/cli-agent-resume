@@ -38,7 +38,6 @@ function validateManifest(data: unknown): data is Manifest {
   return (
     Array.isArray(m['entries']) &&
     (m['entries'] as unknown[]).every(validateEntry) &&
-    typeof m['buildDate'] === 'string' &&
     typeof m['version'] === 'string'
   );
 }
