@@ -13,6 +13,11 @@ Restart=on-failure
 RestartSec=5
 StandardOutput=journal
 StandardError=journal
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/www/portfolio
 
 [Install]
 WantedBy=multi-user.target
