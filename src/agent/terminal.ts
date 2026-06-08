@@ -12,6 +12,7 @@ import { bus, EVENT_TYPES } from '../bus.js';
 import type { ThemeConfig, ThemeChangeEvent } from '../types.js';
 import type { ThemeManager } from '../theme.js';
 import type { SSEClient } from './sseClient.js';
+import type { ILinkHandler } from '@xterm/xterm';
 
 // ─── AgentTerminal ────────────────────────────────────────────────────────────
 
@@ -27,22 +28,28 @@ export class AgentTerminal {
   constructor(initialTheme: ThemeConfig, themeManager: ThemeManager) {
     this.themeManager = themeManager;
     this.fitAddon = new FitAddon();
+    this.webLinksAddon = new WebLinksAddon();
 
-    // FIX 2: WebLinksAddon with custom handler for agent:query: URIs
-    this.webLinksAddon = new WebLinksAddon((_event, uri) => {
-      if (uri.startsWith('agent:query:')) {
-        try {
-          const query = decodeURIComponent(uri.slice('agent:query:'.length));
-          if (this.sseClient) {
-            void this.sseClient.sendMessage(query);
+    // OSC 8 hyperlinks (including agent:query: URIs) are handled by xterm's
+    // built-in OscLinkProvider via linkHandler. allowNonHttpProtocols must be
+    // true or the provider silently drops any non-http/https URI.
+    const linkHandler: ILinkHandler = {
+      allowNonHttpProtocols: true,
+      activate: (_event, uri) => {
+        if (uri.startsWith('agent:query:')) {
+          try {
+            const query = decodeURIComponent(uri.slice('agent:query:'.length));
+            if (this.sseClient) {
+              void this.sseClient.sendMessage(query);
+            }
+          } catch {
+            // ignore decode errors
           }
-        } catch {
-          // ignore decode errors
+        } else {
+          window.open(uri, '_blank');
         }
-      } else {
-        window.open(uri, '_blank');
-      }
-    });
+      },
+    };
 
     this.term = new Terminal({
       fontFamily: '"JetBrains Mono", "JetBrainsMono Nerd Font", monospace',
@@ -53,6 +60,8 @@ export class AgentTerminal {
       scrollback: 1000,
       theme: toXtermTheme(initialTheme),
       allowProposedApi: true,
+      linkHandler,
+      wordSeparator: ' ',
     });
 
     this.term.loadAddon(this.fitAddon);
@@ -72,14 +81,24 @@ export class AgentTerminal {
    * Should be called once after construction.
    */
   mount(element: HTMLElement): void {
-    this.term.open(element);
+    // Wrap in a padded inner div so xterm's canvas has breathing room.
+    // FitAddon measures the wrapper, so the padding naturally reduces the
+    // column count and causes long lines to wrap earlier.
+    const wrapper = element.ownerDocument.createElement('div');
+    wrapper.style.cssText = 'position:absolute;inset:0;padding:10px 42px 10px 14px;box-sizing:border-box;';
+    element.appendChild(wrapper);
+    this.term.open(wrapper);
 
-    // Initial fit
-    requestAnimationFrame(() => {
-      this.fitAddon.fit();
-    });
+    // Fit synchronously now — fonts are guaranteed loaded (caller awaits
+    // document.fonts.ready before mount), and the grid has already painted
+    // because we're inside a double-rAF from main(). This sets the correct
+    // column/row count before anything is written to the terminal, preventing
+    // the reflow-into-scrollback garbage that appears when fit() runs after
+    // content has already been written at a different width.
+    try { this.fitAddon.fit(); } catch { /* ignore */ }
 
-    // Fit on container resize
+    // Fit on container resize — observe the outer element so padding changes
+    // propagate; the wrapper's inset:0 means both have the same size anyway.
     this.resizeObserver = new ResizeObserver(() => {
       try {
         this.fitAddon.fit();
@@ -128,6 +147,11 @@ export class AgentTerminal {
   /** Focus the terminal (capture keyboard input). */
   focus(): void {
     this.term.focus();
+  }
+
+  /** Scroll the terminal viewport to the bottom. */
+  scrollToBottom(): void {
+    this.term.scrollToBottom();
   }
 
   /** Clear the terminal viewport. */

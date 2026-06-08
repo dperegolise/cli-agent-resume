@@ -15,6 +15,7 @@ import json
 import logging
 import os
 import time
+from pathlib import Path
 from typing import Any, Dict, List
 
 from dotenv import load_dotenv
@@ -48,7 +49,9 @@ app.add_middleware(
 # Load manifest / search index at startup
 @app.on_event("startup")
 async def _startup() -> None:
-    www_dir = os.getenv("WWW_DIR", "www")
+    _here = Path(__file__).parent
+    default_www = str(_here.parent / "www")
+    www_dir = os.getenv("WWW_DIR", default_www)
     logger.info("Loading manifest from %s", www_dir)
     try:
         manifest_module.load(www_dir)

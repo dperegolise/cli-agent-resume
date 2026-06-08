@@ -77,4 +77,5 @@ export function printMOTD(terminal: AgentTerminal, _sseClient: SSEClient): void 
 
   // Initial prompt
   terminal.write('agent> ');
+  terminal.scrollToBottom();
 }

@@ -17,6 +17,12 @@ const COMMANDS = [
   'contact',
   'clear',
   'theme',
+  'cat',
+  'grep',
+  'sed',
+  'wc',
+  'head',
+  'tail',
 ];
 
 // ─── Completion state ─────────────────────────────────────────────────────────
@@ -57,7 +63,7 @@ function getCandidates(lineBeforeCursor: string): { candidates: string[]; prefix
 
   const lastToken = parts[parts.length - 1] ?? '';
 
-  if (firstToken === 'view' || firstToken === 'ls') {
+  if (firstToken === 'view' || firstToken === 'ls' || firstToken === 'cat') {
     return { candidates: getAllPaths(), prefix: lastToken };
   }
 

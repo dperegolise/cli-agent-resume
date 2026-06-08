@@ -1,17 +1,7 @@
 /**
- * src/drawer/terminal.ts — CLITerminal class
- * Bottom xterm.js drawer with command interpreter, tab completion, and history.
- *
- * Responsibilities:
- *  - Mount xterm.js into #cli-drawer
- *  - Print splash screen + initial prompt on mount
- *  - Handle keyboard input (printable chars, backspace, Enter, Tab, arrows, Ctrl+C)
- *  - Subscribe to THEME_CHANGE events → update terminal theme
- *  - Delegate command execution to commands.ts
- *  - Delegate Tab completion to completion.ts
- *  - Delegate history navigation to history.ts
- *
- * NOTE: Does NOT bind to #drawer-toggle — m2's responsive.ts owns that.
+ * src/drawer/terminal.ts — CLITerminal: mocked shell over portfolio files.
+ * All commands operate against the cached manifest in the browser.
+ * Nothing is sent to a server except the existing /agent SSE endpoint.
  */
 
 import { Terminal } from '@xterm/xterm';
@@ -20,32 +10,20 @@ import { toXtermTheme, ThemeManager } from '../theme.js';
 import { bus, EVENT_TYPES } from '../bus.js';
 import { dispatch, type CommandContext } from './commands.js';
 import { tabComplete, resetCompletion } from './completion.js';
-import {
-  pushHistory,
-  historyUp,
-  historyDown,
-  resetCursor,
-} from './history.js';
+import { pushHistory, historyUp, historyDown, resetCursor } from './history.js';
 import type { ThemeChangeEvent } from '../types.js';
 
-// ─── Splash screen ────────────────────────────────────────────────────────────
+// ─── Splash ───────────────────────────────────────────────────────────────────
 
-// Gruvbox bright-yellow ANSI escape for the ASCII art banner
-const Y = '\x1b[93m'; // bright yellow
-const G = '\x1b[92m'; // bright green
-const C = '\x1b[96m'; // bright cyan
-const R = '\x1b[0m';  // reset
+const Y = '\x1b[93m';
+const G = '\x1b[92m';
+const C = '\x1b[96m';
+const R = '\x1b[0m';
 
 const SPLASH_LINES = [
   '',
-  `${Y}██████╗  ██████╗ ██████╗ ████████╗███████╗ ██████╗ ██╗     ██╗ ██████╗${R}`,
-  `${Y}██╔══██╗██╔═══██╗██╔══██╗╚══██╔══╝██╔════╝██╔═══██╗██║     ██║██╔═══██╗${R}`,
-  `${Y}██████╔╝██║   ██║██████╔╝   ██║   █████╗  ██║   ██║██║     ██║██║   ██║${R}`,
-  `${Y}██╔═══╝ ██║   ██║██╔══██╗   ██║   ██╔══╝  ██║   ██║██║     ██║██║   ██║${R}`,
-  `${Y}██║     ╚██████╔╝██║  ██║   ██║   ██║     ╚██████╔╝███████╗██║╚██████╔╝${R}`,
-  `${Y}╚═╝      ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝${R}`,
-  '',
-  `  ${G}Daniel Peregolise's portfolio${R} ${C}— v1.0.0${R}`,
+  `  ${Y}PORTFOLIO${R} ${C}///${R} ${G}Daniel Peregolise${R}`,
+  `  ${C}${'─'.repeat(38)}${R}`,
   `  Type ${G}'help'${R} for available commands.`,
   '',
 ];
@@ -63,54 +41,34 @@ export class CLITerminal {
 
   constructor(private readonly themeManager: ThemeManager) {
     const theme = themeManager.getTheme();
-
+    this.fitAddon = new FitAddon();
     this.term = new Terminal({
-      fontFamily: "'JetBrains Mono', 'Cascadia Code', monospace",
+      fontFamily: "'JetBrains Mono', 'Symbols Nerd Font', monospace",
       fontSize: 13,
-      lineHeight: 1.4,
+      lineHeight: 1.2,
       cursorBlink: true,
       scrollback: 1000,
       theme: toXtermTheme(theme),
     });
-
-    this.fitAddon = new FitAddon();
     this.term.loadAddon(this.fitAddon);
   }
 
-  // ─── Mount ──────────────────────────────────────────────────────────────────
-
-  /**
-   * Mount the terminal into the given DOM element.
-   * Prints splash screen and shows the initial prompt.
-   */
   mount(element: HTMLElement): void {
     this.term.open(element);
-    this.fitAddon.fit();
+    try { this.fitAddon.fit(); } catch { /* ignore */ }
 
-    // Watch element size changes
     this.resizeObserver = new ResizeObserver(() => {
-      try {
-        this.fitAddon.fit();
-      } catch {
-        // Ignore fit errors when element is hidden
-      }
+      try { this.fitAddon.fit(); } catch { /* ignore */ }
     });
     this.resizeObserver.observe(element);
-
-    // Subscribe to window resize as well
     window.addEventListener('resize', this._onWindowResize);
 
-    // Print splash
-    for (const line of SPLASH_LINES) {
-      this.term.writeln(line);
-    }
-
+    for (const line of SPLASH_LINES) this.term.writeln(line);
     this.showPrompt();
+    this.term.scrollToBottom();
     this.attachInput();
     this.subscribeTheme();
   }
-
-  // ─── Cleanup ─────────────────────────────────────────────────────────────────
 
   dispose(): void {
     this.resizeObserver?.disconnect();
@@ -121,31 +79,13 @@ export class CLITerminal {
     this.term.dispose();
   }
 
-  // ─── Theme ───────────────────────────────────────────────────────────────────
-
-  private subscribeTheme(): void {
-    this.unsubscribeTheme = bus.subscribe<ThemeChangeEvent>(
-      EVENT_TYPES.THEME_CHANGE,
-      (_evt) => {
-        try {
-          this.term.options.theme = toXtermTheme(this.themeManager.getTheme());
-        } catch {
-          // ignore
-        }
-      },
-    );
-  }
-
-  // ─── Input handling ───────────────────────────────────────────────────────────
+  // ─── Input ────────────────────────────────────────────────────────────────────
 
   private attachInput(): void {
-    this.term.onData((data) => {
-      void this.handleData(data);
-    });
+    this.term.onData((data) => { void this.handleData(data); });
   }
 
   private async handleData(data: string): Promise<void> {
-    // ── Ctrl+C ──
     if (data === '\x03') {
       this.term.write('^C');
       this.lineBuffer = '';
@@ -156,93 +96,64 @@ export class CLITerminal {
       return;
     }
 
-    // ── Backspace ──
     if (data === '\x7f' || data === '\b') {
       if (this.lineBuffer.length > 0) {
         this.lineBuffer = this.lineBuffer.slice(0, -1);
-        // Move cursor back, overwrite with space, move back again
         this.term.write('\b \b');
         resetCompletion();
       }
       return;
     }
 
-    // ── Enter ──
     if (data === '\r' || data === '\n') {
       const input = this.lineBuffer;
       this.lineBuffer = '';
       resetCompletion();
       resetCursor('');
       this.term.writeln('');
-
       if (input.trim()) {
         pushHistory(input);
         await this.executeCommand(input);
       }
-
+      this.term.writeln('');
       this.showPrompt();
       return;
     }
 
-    // ── Tab ──
     if (data === '\t') {
       const result = tabComplete(this.lineBuffer);
       switch (result.type) {
         case 'single':
-        case 'cycle': {
-          const completed = result.completed;
-          // Rewrite the current line
+        case 'cycle':
           this.clearLine();
-          this.lineBuffer = completed;
-          this.term.write(completed);
+          this.lineBuffer = result.completed;
+          this.term.write(result.completed);
           break;
-        }
-        case 'multiple': {
-          // Print matches on a new line, then restore partial input
+        case 'multiple':
           this.term.writeln('');
           this.term.writeln(result.matches.join('  '));
           this.showPrompt();
           this.term.write(this.lineBuffer);
           break;
-        }
         case 'none':
-          // Bell
           this.term.write('\x07');
           break;
       }
       return;
     }
 
-    // ── Arrow keys ──
     if (data === '\x1b[A') {
-      // Up arrow
       const prev = historyUp(this.lineBuffer);
-      if (prev !== null) {
-        this.clearLine();
-        this.lineBuffer = prev;
-        this.term.write(prev);
-      }
+      if (prev !== null) { this.clearLine(); this.lineBuffer = prev; this.term.write(prev); }
       return;
     }
-
     if (data === '\x1b[B') {
-      // Down arrow
       const next = historyDown();
-      if (next !== null) {
-        this.clearLine();
-        this.lineBuffer = next;
-        this.term.write(next);
-      }
+      if (next !== null) { this.clearLine(); this.lineBuffer = next; this.term.write(next); }
       return;
     }
+    if (data.startsWith('\x1b')) return;
 
-    // ── Ignore other escape sequences ──
-    if (data.startsWith('\x1b')) {
-      return;
-    }
-
-    // ── Printable character ──
-    // Filter to printable range
     if (data.length === 1 && data.charCodeAt(0) >= 32) {
       resetCompletion();
       this.lineBuffer += data;
@@ -250,45 +161,37 @@ export class CLITerminal {
     }
   }
 
-  // ─── Helpers ─────────────────────────────────────────────────────────────────
+  // ─── Helpers ──────────────────────────────────────────────────────────────────
 
   private showPrompt(): void {
     this.term.write(PROMPT);
   }
 
-  /** Erase the current input on the terminal line (doesn't clear lineBuffer). */
   private clearLine(): void {
-    // Move back by lineBuffer.length and overwrite with spaces, then go back
     const len = this.lineBuffer.length;
     if (len === 0) return;
-    this.term.write('\b'.repeat(len));
-    this.term.write(' '.repeat(len));
-    this.term.write('\b'.repeat(len));
+    this.term.write('\b'.repeat(len) + ' '.repeat(len) + '\b'.repeat(len));
   }
 
   private readonly _onWindowResize = (): void => {
-    try {
-      this.fitAddon.fit();
-    } catch {
-      // Ignore
-    }
+    try { this.fitAddon.fit(); } catch { /* ignore */ }
   };
 
-  // ─── Command execution ────────────────────────────────────────────────────────
+  private subscribeTheme(): void {
+    this.unsubscribeTheme = bus.subscribe<ThemeChangeEvent>(EVENT_TYPES.THEME_CHANGE, () => {
+      try { this.term.options.theme = toXtermTheme(this.themeManager.getTheme()); } catch { /* ignore */ }
+    });
+  }
 
   private async executeCommand(input: string): Promise<void> {
     const ctx: CommandContext = {
-      write: (line: string) => this.term.writeln(line),
-      clearScreen: () => {
-        this.term.clear();
-      },
-      setTheme: (name: string) => {
+      write: (line) => this.term.writeln(line),
+      clearScreen: () => this.term.clear(),
+      setTheme: (name) => {
         this.themeManager.setTheme(name);
-        // Update our own theme immediately
         this.term.options.theme = toXtermTheme(this.themeManager.getTheme());
       },
     };
-
     try {
       await dispatch(input, ctx);
     } catch (err) {

@@ -1,3 +1,9 @@
+---
+title: Daniel Peregolise
+section: home
+description: Senior Software Engineer — distributed systems, developer tooling, and platform infrastructure.
+---
+
 # Daniel Peregolise
 
 **Senior Software Engineer** — distributed systems, developer tooling, and platform infrastructure.

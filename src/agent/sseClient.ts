@@ -39,12 +39,20 @@ const ANSI_RESET = '\x1b[0m';
 
 // ─── SSEClient ────────────────────────────────────────────────────────────────
 
+const DEBOUNCE_MS = 3000;
+
 export class SSEClient {
   private readonly terminal: AgentTerminal;
   private readonly sessionId: string;
   private history: ChatMessage[] = [];
   private currentAbortController: AbortController | null = null;
   private streaming = false;
+  private lastSentAt = 0;
+  // Word-wrap state: tracks cursor column and buffers the current word so we
+  // can measure it before committing to the line (tokens arrive one word at a
+  // time from the backend, so we can't peek ahead within a single token).
+  private wrapCol = 0;
+  private wordBuf = '';
 
   constructor(terminal: AgentTerminal) {
     this.terminal = terminal;
@@ -80,6 +88,19 @@ export class SSEClient {
    * Adds the message to conversation history before sending.
    */
   async sendMessage(msg: string): Promise<void> {
+    // ── Hard debounce: reject if last send was < 3 s ago ──────────────────
+    const now = Date.now();
+    const elapsed = now - this.lastSentAt;
+    if (this.lastSentAt > 0 && elapsed < DEBOUNCE_MS) {
+      const remaining = ((DEBOUNCE_MS - elapsed) / 1000).toFixed(1);
+      this.terminal.writeln(
+        ANSI_YELLOW + `Please wait ${remaining}s before sending another message.` + ANSI_RESET,
+      );
+      this.terminal.write('\r\nagent> ');
+      return;
+    }
+    this.lastSentAt = now;
+
     // ── Client-side ban check ──────────────────────────────────────────────
     const banUntilStr = localStorage.getItem(BAN_STORAGE_KEY);
     if (banUntilStr) {
@@ -181,6 +202,8 @@ export class SSEClient {
     }
 
     // ── Stream SSE events ──────────────────────────────────────────────────
+    this.wrapCol = 0;
+    this.wordBuf = '';
     let assistantContent = '';
     try {
       assistantContent = await this.streamSSE(response);
@@ -273,7 +296,8 @@ export class SSEClient {
     switch (evt.type) {
       case 'token': {
         const tokenEvt = evt as SSETokenEvent;
-        this.terminal.write(tokenEvt.content);
+        this.writeWrapped(tokenEvt.content);
+        this.terminal.scrollToBottom();
         return tokenEvt.content;
       }
 
@@ -307,7 +331,11 @@ export class SSEClient {
       case 'done': {
         const _done = evt as SSEDoneEvent;
         void _done;
+        this.flushWordBuf();
+        this.wrapCol = 0;
+        this.wordBuf = '';
         this.terminal.write('\r\n\r\nagent> ');
+        this.terminal.scrollToBottom();
         return '';
       }
 
@@ -317,6 +345,7 @@ export class SSEClient {
           '\r\n' + ANSI_RED + `Error: ${errorEvt.message}` + ANSI_RESET,
         );
         this.terminal.write('\r\nagent> ');
+        this.terminal.scrollToBottom();
         return '';
       }
 
@@ -324,6 +353,58 @@ export class SSEClient {
         log.warn('Unknown SSE event type', (evt as { type: string }).type);
         return '';
     }
+  }
+
+  /**
+   * Write text to the terminal with word-aware wrapping.
+   *
+   * Because the backend streams one word per token, we can't peek ahead within
+   * a single call. Instead we buffer the current word in `wordBuf` and only
+   * flush it to the terminal when we hit a space or newline — at that point we
+   * know the full word and can decide whether it fits on the current line.
+   */
+  private writeWrapped(text: string): void {
+    const cols = this.terminal.cols;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i]!;
+      if (ch === '\n' || ch === '\r') {
+        this.flushWordBuf();
+        this.terminal.write('\r\n');
+        this.wrapCol = 0;
+        continue;
+      }
+      if (ch === ' ') {
+        // Flush the buffered word now that we know its full length.
+        this.flushWordBuf();
+        // Emit the space, or turn it into a line break if we're near the edge
+        // and more text is coming (non-trailing space).
+        if (i < text.length - 1) {
+          if (this.wrapCol + 1 >= cols) {
+            this.terminal.write('\r\n');
+            this.wrapCol = 0;
+          } else {
+            this.terminal.write(' ');
+            this.wrapCol++;
+          }
+        }
+        continue;
+      }
+      this.wordBuf += ch;
+    }
+    // Don't flush here — the word may continue in the next token.
+  }
+
+  /** Flush the buffered word to the terminal, breaking before it if needed. */
+  private flushWordBuf(): void {
+    if (!this.wordBuf) return;
+    const cols = this.terminal.cols;
+    if (this.wrapCol + this.wordBuf.length > cols) {
+      this.terminal.write('\r\n');
+      this.wrapCol = 0;
+    }
+    this.terminal.write(this.wordBuf);
+    this.wrapCol += this.wordBuf.length;
+    this.wordBuf = '';
   }
 
   /** Format and write search results to the terminal. */
@@ -334,17 +415,11 @@ export class SSEClient {
       return;
     }
 
-    this.terminal.writeln('\r\n\x1b[1;36m── Search Results ──\x1b[0m');
+    this.terminal.writeln('');
     for (const result of results) {
-      const score = Math.round(result.score * 100);
       this.terminal.writeln(
-        `\x1b[1;33m[${result.path}]\x1b[0m \x1b[32m(${score}% match)\x1b[0m`,
+        `\x1b[2m·\x1b[0m \x1b[33m${result.path}\x1b[0m \x1b[2m${result.title}\x1b[0m`,
       );
-      this.terminal.writeln(`  \x1b[1m${result.title}\x1b[0m`);
-      if (result.excerpt) {
-        this.terminal.writeln(`  ${result.excerpt}`);
-      }
-      this.terminal.writeln('');
     }
   }
 }

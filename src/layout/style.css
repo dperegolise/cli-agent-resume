@@ -24,13 +24,13 @@ body {
 }
 
 /* ─── App root: three-panel grid ──────────────────────────────────────────── */
-/* Columns: left sidebar (320px) | vertical divider (1px) | right panel (rest) */
-/* Rows: main content (1fr) | horizontal divider (1px) | cli drawer (220px)    */
+/* Columns: left sidebar (420px) | vertical divider (1px) | right panel (rest) */
+/* Rows: main content (1fr) | horizontal divider (1px) | cli drawer (280px)    */
 
 #app {
   display: grid;
-  grid-template-columns: 320px 1px 1fr;
-  grid-template-rows: 1fr 1px 220px;
+  grid-template-columns: 420px 1px 1fr;
+  grid-template-rows: 1fr 1px 280px;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
@@ -54,40 +54,66 @@ body {
   background: var(--tmux-green);
   width: 1px;
   cursor: col-resize;
+  position: relative;
+  z-index: 10;
 }
 
-/* ─── Right panel: file explorer + editor (column 3, row 1) ──────────────── */
-/* Right panel is itself a flex column so file-explorer and vim-editor-wrap   */
-/* stack vertically with a 1px divider between them.                          */
+#divider-vertical::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -6px;
+  right: -6px;
+  bottom: 0;
+  cursor: col-resize;
+}
+
+/* ─── Right panel: file explorer sidebar + editor (column 3, row 1) ─────── */
+/* Right panel is a flex row: file-explorer sidebar on the left, vim editor   */
+/* filling the rest, separated by a 1px vertical divider.                     */
 
 #right-panel {
   grid-column: 3;
   grid-row: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   overflow: hidden;
 }
 
-/* ─── File explorer (top ~25% of right panel) ─────────────────────────────── */
+/* ─── File explorer (left sidebar, fixed width) ───────────────────────────── */
 
 #file-explorer {
   flex-shrink: 0;
-  height: 25%;
+  width: 220px;
+  height: 100%;
   overflow-y: auto;
   background: var(--bg-main);
   padding: 4px 0;
 }
 
-/* ─── Horizontal divider inside right panel ───────────────────────────────── */
+/* ─── Vertical divider inside right panel ─────────────────────────────────── */
 
 #divider-horizontal {
   flex-shrink: 0;
-  height: 1px;
+  width: 1px;
+  height: 100%;
   background: var(--tmux-green);
-  cursor: row-resize;
+  cursor: col-resize;
+  position: relative;
+  z-index: 10;
 }
 
-/* ─── Vim editor wrap (bottom ~75% of right panel) ───────────────────────── */
+#divider-horizontal::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -6px;
+  right: -6px;
+  bottom: 0;
+  cursor: col-resize;
+}
+
+/* ─── Vim editor wrap (fills remaining width of right panel) ─────────────── */
 
 #vim-editor-wrap {
   flex: 1;
@@ -136,6 +162,18 @@ body {
   background: var(--tmux-green);
   height: 1px;
   cursor: row-resize;
+  position: relative;
+  z-index: 10;
+}
+
+#divider-bottom::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  cursor: row-resize;
 }
 
 /* ─── Drawer toggle bar (the 1px clickable strip) ─────────────────────────── */
@@ -146,6 +184,18 @@ body {
   grid-row: 2;
   height: 1px;
   background: var(--tmux-green);
+  cursor: row-resize;
+  position: relative;
+  z-index: 10;
+}
+
+#drawer-toggle::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 0;
+  right: 0;
+  bottom: -6px;
   cursor: row-resize;
 }
 

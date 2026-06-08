@@ -4,14 +4,59 @@
  */
 
 import { EditorState } from '@codemirror/state';
-import { EditorView } from '@codemirror/view';
+import { EditorView, drawSelection } from '@codemirror/view';
+import { history } from '@codemirror/commands';
 import { markdown } from '@codemirror/lang-markdown';
+import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { tags as t } from '@lezer/highlight';
 import { vim, Vim } from '@replit/codemirror-vim';
 import { bus, EVENT_TYPES } from '../bus.js';
 import { loadFile, getDefaultFile } from './fileLoader.js';
 import { PowerlineBar, powerlineBarExtension } from './statusBar.js';
 import { GRUVBOX_DARK } from '../theme.js';
 import type { FocusFileEvent } from '../types.js';
+
+// ─── Gruvbox syntax highlight style ──────────────────────────────────────────
+
+const gruvboxHighlight = HighlightStyle.define([
+  // Headings: red → yellow → green by level
+  { tag: t.heading1,       color: '#fb4934', fontWeight: 'bold' },
+  { tag: t.heading2,       color: '#fabd2f', fontWeight: 'bold' },
+  { tag: t.heading3,       color: '#b8bb26', fontWeight: 'bold' },
+  { tag: t.heading,        color: '#fe8019', fontWeight: 'bold' },
+  // Emphasis / strong
+  { tag: t.emphasis,       color: '#d3869b', fontStyle: 'italic' },
+  { tag: t.strong,         color: '#ebdbb2', fontWeight: 'bold' },
+  // Links
+  { tag: t.link,           color: '#83a598', textDecoration: 'underline' },
+  { tag: t.url,            color: '#8ec07c' },
+  // Code
+  { tag: t.monospace,      color: '#8ec07c', fontFamily: "'JetBrains Mono', monospace" },
+  { tag: t.contentSeparator, color: '#928374' },
+  // Quotes / comments
+  { tag: t.comment,        color: '#928374', fontStyle: 'italic' },
+  { tag: t.blockComment,   color: '#928374', fontStyle: 'italic' },
+  // Lists / punctuation
+  { tag: t.list,           color: '#fe8019' },
+  { tag: t.punctuation,    color: '#a89984' },
+  { tag: t.processingInstruction, color: '#d3869b' },
+  // Strings / atoms
+  { tag: t.string,         color: '#b8bb26' },
+  { tag: t.atom,           color: '#d3869b' },
+  // Keywords / operators (for embedded code blocks)
+  { tag: t.keyword,        color: '#fb4934' },
+  { tag: t.operator,       color: '#8ec07c' },
+  { tag: t.number,         color: '#d3869b' },
+  { tag: t.bool,           color: '#d3869b' },
+  { tag: t.variableName,   color: '#83a598' },
+  { tag: t.function(t.variableName), color: '#b8bb26' },
+  { tag: t.typeName,       color: '#fabd2f' },
+  { tag: t.className,      color: '#fabd2f' },
+  { tag: t.propertyName,   color: '#83a598' },
+  { tag: t.tagName,        color: '#fb4934' },
+  { tag: t.attributeName,  color: '#fabd2f' },
+  { tag: t.attributeValue, color: '#b8bb26' },
+]);
 
 // ─── Gruvbox CodeMirror theme ─────────────────────────────────────────────────
 
@@ -32,77 +77,30 @@ const gruvboxTheme = EditorView.theme(
       borderLeftColor: GRUVBOX_DARK.colors.cursor,
       borderLeftWidth: '2px',
     },
-    '.cm-selectionBackground': {
-      backgroundColor: GRUVBOX_DARK.colors.selection,
-    },
-    '&.cm-focused .cm-selectionBackground': {
-      backgroundColor: GRUVBOX_DARK.colors.selection,
-    },
     '.cm-gutters': {
-      backgroundColor: GRUVBOX_DARK.colors.ansi[0],   // #282828 black
-      color: GRUVBOX_DARK.colors.ansi[8],              // #928374 bright-black (gray)
+      backgroundColor: GRUVBOX_DARK.colors.ansi[0],
+      color: GRUVBOX_DARK.colors.ansi[8],
       borderRight: `1px solid ${GRUVBOX_DARK.colors.selection}`,
     },
-    '.cm-activeLineGutter': {
-      backgroundColor: '#3c3836',
-    },
-    '.cm-activeLine': {
-      backgroundColor: '#3c3836',
-    },
-    '.cm-scroller': {
-      overflow: 'auto',
-    },
-    // Markdown syntax colors — sourced from GRUVBOX_DARK theme palette
-    '.cm-header': { color: GRUVBOX_DARK.colors.ansi[9], fontWeight: 'bold' },   // bright-red
-    '.cm-header-1': { color: GRUVBOX_DARK.colors.ansi[9] },                     // bright-red
-    '.cm-header-2': { color: GRUVBOX_DARK.colors.ansi[11] },                    // bright-yellow
-    '.cm-header-3': { color: GRUVBOX_DARK.colors.ansi[10] },                    // bright-green
-    '.cm-strong': { color: GRUVBOX_DARK.colors.fg, fontWeight: 'bold' },
-    '.cm-em': { color: GRUVBOX_DARK.colors.ansi[13], fontStyle: 'italic' },     // bright-magenta
-    '.cm-link': { color: GRUVBOX_DARK.colors.ansi[12] },                        // bright-blue
-    '.cm-url': { color: GRUVBOX_DARK.colors.ansi[14] },                         // bright-cyan
-    '.cm-quote': { color: GRUVBOX_DARK.colors.ansi[8] },                        // bright-black
-    '.cm-monospace': { color: GRUVBOX_DARK.colors.ansi[14], fontFamily: "'JetBrains Mono', monospace" }, // bright-cyan
-    // vim status line area
-    '.cm-vim-panel': { display: 'none' },  // hide default vim panel; we use our own
+    '.cm-activeLineGutter': { backgroundColor: '#3c3836' },
+    '.cm-activeLine':       { backgroundColor: '#3c3836' },
+    '.cm-scroller':         { overflow: 'auto' },
+    '.cm-vim-panel':        { display: 'none' },
   },
   { dark: true },
 );
 
-// ─── Read-only toast ──────────────────────────────────────────────────────────
-
-let toastTimeout: ReturnType<typeof setTimeout> | null = null;
-
-function showReadOnlyToast(): void {
-  let toast = document.getElementById('vim-readonly-toast');
-  if (!toast) {
-    toast = document.createElement('div');
-    toast.id = 'vim-readonly-toast';
-    toast.style.cssText = [
-      'position: fixed',
-      'bottom: 40px',
-      'left: 50%',
-      'transform: translateX(-50%)',
-      'background: #504945',
-      'color: #ebdbb2',
-      'padding: 4px 12px',
-      'border-radius: 4px',
-      'font-family: JetBrains Mono, monospace',
-      'font-size: 12px',
-      'z-index: 9999',
-      'pointer-events: none',
-      'border: 1px solid #d65d0e',
-      'transition: opacity 0.2s',
-    ].join(';');
-    toast.textContent = 'E45: \'readonly\' option is set (add ! to override)';
-    document.body.appendChild(toast);
-  }
-  toast.style.opacity = '1';
-  if (toastTimeout) clearTimeout(toastTimeout);
-  toastTimeout = setTimeout(() => {
-    if (toast) toast.style.opacity = '0';
-  }, 2000);
-}
+// Inject selection highlight as a real stylesheet so it beats the vim plugin's
+// `background-color: transparent !important` on ::selection. EditorView.theme()
+// loses that specificity war; a <style> tag added to <head> wins it.
+(function injectSelectionStyle() {
+  if (document.getElementById('cm-gruvbox-selection')) return;
+  const s = document.createElement('style');
+  s.id = 'cm-gruvbox-selection';
+  s.textContent = `.cm-selectionBackground { background-color: #665c54 !important; }
+.cm-focused .cm-selectionBackground { background-color: #665c54 !important; }`;
+  document.head.appendChild(s);
+})();
 
 // ─── VimEditor class ──────────────────────────────────────────────────────────
 
@@ -120,14 +118,18 @@ export class VimEditor {
     this.statusBar = new PowerlineBar(statusBarElement);
 
     const extensions = [
-      // Vim keybindings (no default status bar — we have our own)
+      // Full vim emulation — insert mode, visual mode, operators, registers, macros
       vim({ status: false }),
-      // Markdown language support
+      // Undo/redo history — required for vim's u / Ctrl-r to work
+      history(),
+      // Draw CM6's selection layer — vim suppresses native ::selection but relies on this
+      drawSelection(),
+      // Markdown language support + embedded language highlighting
       markdown(),
       // Gruvbox color theme
       gruvboxTheme,
-      // Read-only
-      EditorState.readOnly.of(true),
+      // Syntax highlighting (must come after the language extension)
+      syntaxHighlighting(gruvboxHighlight),
       // Status bar updater
       powerlineBarExtension(this.statusBar),
       // Line wrapping
@@ -251,55 +253,16 @@ export class VimEditor {
   }
 
   private patchVimCommands(): void {
-    if (!this.view) return;
-
-    // Override Vim ex commands that would mutate state
-    const noop = () => { /* read-only, no-op */ };
-    const readOnlyFlash = () => { showReadOnlyToast(); };
-
+    const noop = () => { /* no-op: content is local-only, nothing to write */ };
     try {
-      // :w, :wq, :x — write commands
+      // :w / :wq / :x — silently no-op; edits stay local, never sent to server
       Vim.defineEx('write', 'w', noop);
       Vim.defineEx('wq', '', noop);
       Vim.defineEx('x', '', noop);
       Vim.defineEx('xit', '', noop);
-
-      // Override insert-mode entry keys to flash "read-only"
-      // We map them through the Vim command system
-      Vim.map('i', '<Nop>', 'normal');
-      Vim.map('I', '<Nop>', 'normal');
-      Vim.map('a', '<Nop>', 'normal');
-      Vim.map('A', '<Nop>', 'normal');
-      Vim.map('o', '<Nop>', 'normal');
-      Vim.map('O', '<Nop>', 'normal');
-      Vim.map('s', '<Nop>', 'normal');
-      Vim.map('S', '<Nop>', 'normal');
-      Vim.map('c', '<Nop>', 'normal');
-      Vim.map('C', '<Nop>', 'normal');
-      Vim.map('r', '<Nop>', 'normal');
-      Vim.map('R', '<Nop>', 'normal');
-      Vim.map('p', '<Nop>', 'normal');
-      Vim.map('P', '<Nop>', 'normal');
-      Vim.map('d', '<Nop>', 'normal');
-      Vim.map('D', '<Nop>', 'normal');
-      Vim.map('x', '<Nop>', 'normal');
-      Vim.map('X', '<Nop>', 'normal');
-      Vim.map('J', '<Nop>', 'normal');  // join-lines (read-only: no-op)
     } catch (err) {
-      // Non-fatal — some Vim versions may not support all overrides
-      console.warn('[VimEditor] Could not patch all vim commands:', err);
+      console.warn('[VimEditor] Could not patch vim ex-commands:', err);
     }
-
-    // Additionally, intercept keydown events to show toast for edit attempts
-    const editKeys = new Set(['i', 'I', 'a', 'A', 'o', 'O', 's', 'S', 'c', 'C', 'r', 'R']);
-    this.view!.dom.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (editKeys.has(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        showReadOnlyToast();
-        // Don't prevent default — the <Nop> mapping handles the actual key
-      }
-    }, { capture: false });
-
-    void readOnlyFlash; // referenced to avoid unused warning
   }
 }
 

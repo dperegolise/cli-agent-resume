@@ -4,6 +4,7 @@
  * Wires: m2-layout, m3-agent-shell, m4-vim-panel, m5-cli-drawer.
  */
 
+import '@xterm/xterm/css/xterm.css';
 import { ThemeManager, applyThemeCSSVars } from './theme.js';
 import { loadManifest } from './manifest.js';
 import { bus, EVENT_TYPES } from './bus.js';
@@ -16,6 +17,7 @@ import { CLITerminal } from './drawer/terminal.js';
 import { initVimEditor } from './editor/vim.js';
 import { initFileExplorerPanel } from './explorer/tree.js';
 import { initLayout } from './layout/responsive.js';
+import { initResizers } from './layout/resizer.js';
 import type { ThemeChangeEvent } from './types.js';
 
 const log = createLogger('index');
@@ -78,6 +80,22 @@ export async function main(): Promise<void> {
   // Initialise layout (m2): mobile breakpoint + drawer collapse
   const layout = initLayout();
   log.info('Layout initialised', { isMobile: layout.mobile.isMobile() });
+
+  // Initialise panel drag-resizers
+  initResizers();
+
+  // Wait for fonts AND two animation frames before mounting xterm terminals.
+  // Reasons:
+  //   1. document.fonts.ready — xterm renders to canvas; if JetBrains Mono
+  //      isn't loaded yet it falls back to system monospace with wrong char
+  //      widths, producing $$$$ garbage glyphs.
+  //   2. double-rAF — ensures the CSS grid has fully painted and every panel
+  //      has its real pixel dimensions. fitAddon.fit() measures the container
+  //      before writing any content; if the container is still zero-height,
+  //      xterm opens at 1 row, writes the MOTD at that width, then reflows
+  //      into the scrollback when the container expands, leaving >>>aaa debris.
+  await document.fonts.ready;
+  await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
   // ── Mount Agent Shell (m3) ───────────────────────────────────────────────
   const terminal = new AgentTerminal(themeManager.getTheme(), themeManager);

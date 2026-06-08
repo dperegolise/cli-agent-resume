@@ -44,28 +44,43 @@ const CSS = `
 .nerd-tree .tree-item {
   display: flex;
   align-items: center;
-  padding: 2px 4px;
+  padding: 2px 4px 2px 2px;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-radius: 2px;
-  margin: 0 2px;
+  margin: 0;
   gap: 4px;
   user-select: none;
+  position: relative;
+}
+
+.nerd-tree .tree-item::before {
+  content: ' ';
+  display: inline-block;
+  width: 1ch;
+  flex-shrink: 0;
+  color: var(--tmux-green, #44ff88);
+}
+
+.nerd-tree .tree-item:hover::before {
+  content: '>';
 }
 
 .nerd-tree .tree-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--tmux-green, #44ff88);
+}
+
+.nerd-tree .tree-item.selected::before {
+  content: '>';
 }
 
 .nerd-tree .tree-item.selected {
-  background: #d79921;
-  color: #282828;
+  color: #d79921;
 }
 
 .nerd-tree .tree-item.selected .tree-icon {
-  color: #282828;
+  color: #d79921;
 }
 
 .nerd-tree .tree-icon {
