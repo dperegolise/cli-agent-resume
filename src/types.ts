@@ -21,6 +21,8 @@ export interface ManifestEntry {
 
 export interface Manifest {
   entries: ManifestEntry[];
+  /** ISO 8601 timestamp of when the manifest was built. */
+  buildDate: string;
   /** Schema version, currently "1.0". */
   version: string;
 }

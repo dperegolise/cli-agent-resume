@@ -10,6 +10,7 @@ import { initAgentShell } from './panels/agent-shell.js';
 import { initVimPanel } from './panels/vim-panel.js';
 import { initCLIDrawer } from './panels/cli-drawer.js';
 import { initFileExplorer } from './panels/file-explorer.js';
+import { initLayout } from './layout/responsive.js';
 
 const log = createLogger('index');
 
@@ -47,6 +48,10 @@ export async function main(): Promise<void> {
     log.error('One or more required DOM mount points not found');
     return;
   }
+
+  // Initialise layout (m2): mobile breakpoint + drawer collapse
+  const layout = initLayout();
+  log.info('Layout initialised', { isMobile: layout.mobile.isMobile() });
 
   // Mount panels (stubs for now; each milestone fills these in)
   initAgentShell({ element: agentShellEl });

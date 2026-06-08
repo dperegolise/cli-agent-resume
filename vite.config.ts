@@ -13,6 +13,7 @@ interface ManifestEntry {
 
 interface Manifest {
   entries: ManifestEntry[];
+  buildDate: string;
   version: string;
 }
 
@@ -71,6 +72,7 @@ function generateManifestPlugin(): Plugin {
 
       const manifest: Manifest = {
         entries,
+        buildDate: new Date().toISOString(),
         version: '1.0',
       };
 
