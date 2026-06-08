@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daniel Peregolise — Developer Portfolio</title>
+
+  <!-- JetBrains Mono via Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Nerd Font symbols subset for powerline glyphs and tree icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@fontsource/symbols-nerd-font@5.0.0/index.css"
+  />
+
+  <!-- m2-layout: three-panel grid, collapsible drawer, mobile styles -->
+  <link rel="stylesheet" href="/src/layout/style.css" />
+
+  <style>
+    /* ── CSS Custom Properties (Gruvbox Dark Hard defaults) ── */
+    /* Overridden at runtime by applyThemeCSSVars() in theme.ts  */
+    :root {
+      --tmux-green: #44ff88;
+      --bg-main: #1d2021;
+      --fg-main: #ebdbb2;
+      --cursor: #ebdbb2;
+      --selection: #504945;
+      --ansi-0: #282828;
+      --ansi-1: #cc241d;
+      --ansi-2: #98971a;
+      --ansi-3: #d79921;
+      --ansi-4: #458588;
+      --ansi-5: #b16286;
+      --ansi-6: #689d6a;
+      --ansi-7: #a89984;
+      --ansi-8: #928374;
+      --ansi-9: #fb4934;
+      --ansi-10: #b8bb26;
+      --ansi-11: #fabd2f;
+      --ansi-12: #83a598;
+      --ansi-13: #d3869b;
+      --ansi-14: #8ec07c;
+      --ansi-15: #ebdbb2;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Left panel: AI Agent Shell (spans all grid rows, full height) -->
+    <div id="agent-shell" class="panel left-panel">
+      <!-- xterm.js AgentTerminal mounts here (m3) -->
+    </div>
+
+    <!-- Vertical divider (column 2, all rows) -->
+    <div id="divider-vertical" class="divider vertical"></div>
+
+    <!-- Right panel: file explorer + vim editor (column 3, row 1) -->
+    <div id="right-panel" class="panel right-panel">
+      <!-- NERDTree-style file explorer (top ~25%) -->
+      <div id="file-explorer" class="panel top-panel">
+        <!-- NERDTree DOM tree renders here (m4) -->
+      </div>
+
+      <!-- Horizontal divider inside right panel -->
+      <div id="divider-horizontal" class="divider horizontal"></div>
+
+      <!-- Vim editor wrap (bottom ~75%): editor + powerline -->
+      <div id="vim-editor-wrap" class="panel bottom-panel">
+        <!-- Legacy alias used by m1 scaffold -->
+        <div id="vim-editor-container" style="display:contents">
+          <!-- CodeMirror 6 mounts here (m4) -->
+          <div id="vim-editor"></div>
+          <!-- Powerline status bar (m4) -->
+          <div id="powerline-status-bar" class="powerline"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Drawer toggle / bottom divider (clickable 1px bar) -->
+    <div id="drawer-toggle" class="divider horizontal" role="button" aria-label="Toggle CLI drawer" tabindex="0"></div>
+
+    <!-- CLI drawer (bottom, collapsible) -->
+    <div id="cli-drawer" class="panel cli-drawer">
+      <!-- xterm.js CLITerminal mounts here (m5) -->
+    </div>
+  </div>
+
+  <!-- Mobile hamburger button (☰) — shown only on mobile via CSS -->
+  <button id="hamburger-btn" aria-label="Toggle file explorer">☰</button>
+  <!-- Legacy alias for backward compat -->
+  <button id="hamburger-menu" class="hamburger" aria-label="Toggle file explorer" style="display:none">☰</button>
+
+  <!-- Mobile file explorer sidebar (slides in from left) -->
+  <div id="mobile-explorer-sidebar" role="navigation" aria-label="File explorer">
+    <!-- File explorer content cloned here by MobileLayout (m2) -->
+  </div>
+
+  <!-- Legacy mobile sidebar alias -->
+  <aside id="mobile-sidebar" class="sidebar-drawer" style="display:none">
+    <div id="mobile-file-explorer"></div>
+  </aside>
+
+  <!-- Mobile backdrop (semi-transparent overlay, click to close sidebar) -->
+  <div id="mobile-backdrop" aria-hidden="true"></div>
+
+  <!-- App entry point -->
+  <script type="module" src="/src/index.ts"></script>
+</body>
+</html>
