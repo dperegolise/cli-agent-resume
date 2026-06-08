@@ -9,6 +9,7 @@ import {
   getAllPaths,
   validatePath,
 } from '../manifest.js';
+import { THEME_NAMES } from '../theme.js';
 import type { FocusFileEvent, ThemeChangeEvent } from '../types.js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -59,7 +60,7 @@ const HELP_LINES = [
   `  ${colorize(ANSI.brightGreen, 'projects')}          View projects/index.md`,
   `  ${colorize(ANSI.brightGreen, 'contact')}           View contact.md`,
   `  ${colorize(ANSI.brightGreen, 'clear')}             Clear the terminal`,
-  `  ${colorize(ANSI.brightGreen, 'theme')} ${colorize(ANSI.cyan, '<name>')}      Change theme (gruvbox-dark | nord | tokyo-night)`,
+  `  ${colorize(ANSI.brightGreen, 'theme')} ${colorize(ANSI.cyan, '<name>')}      Change theme (${THEME_NAMES.join(' | ')})`,
   '',
 ];
 
@@ -218,14 +219,13 @@ function cmdTheme(ctx: CommandContext, args: string[]): void {
   const name = args[0]?.trim();
   if (!name) {
     ctx.write(colorize(ANSI.red, 'theme: missing name. Usage: theme <name>'));
-    ctx.write(colorize(ANSI.dim, '  Available: gruvbox-dark, nord, tokyo-night'));
+    ctx.write(colorize(ANSI.dim, `  Available: ${THEME_NAMES.join(', ')}`));
     return;
   }
 
-  const validThemes = ['gruvbox-dark', 'nord', 'tokyo-night'];
-  if (!validThemes.includes(name)) {
+  if (!THEME_NAMES.includes(name)) {
     ctx.write(colorize(ANSI.red, `theme: unknown theme '${name}'`));
-    ctx.write(colorize(ANSI.dim, '  Available: gruvbox-dark, nord, tokyo-night'));
+    ctx.write(colorize(ANSI.dim, `  Available: ${THEME_NAMES.join(', ')}`));
     return;
   }
 

@@ -126,22 +126,11 @@ export class CLITerminal {
   private subscribeTheme(): void {
     this.unsubscribeTheme = bus.subscribe<ThemeChangeEvent>(
       EVENT_TYPES.THEME_CHANGE,
-      (evt) => {
-        // The ThemeManager already updated its internal state; get the new theme
+      (_evt) => {
         try {
-          const newTheme = this.themeManager.getTheme();
-          this.term.options.theme = toXtermTheme(newTheme);
+          this.term.options.theme = toXtermTheme(this.themeManager.getTheme());
         } catch {
-          // Safety: ignore if theme name unknown
-        }
-        // If the event carries the name, try to force-update
-        if (evt.themeName) {
-          try {
-            this.themeManager.setTheme(evt.themeName);
-            this.term.options.theme = toXtermTheme(this.themeManager.getTheme());
-          } catch {
-            // ignore
-          }
+          // ignore
         }
       },
     );

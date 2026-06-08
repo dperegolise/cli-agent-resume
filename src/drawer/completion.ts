@@ -4,6 +4,7 @@
  */
 
 import { getAllPaths } from '../manifest.js';
+import { THEME_NAMES } from '../theme.js';
 
 /** Known static command names. */
 const COMMANDS = [
@@ -61,7 +62,7 @@ function getCandidates(lineBeforeCursor: string): { candidates: string[]; prefix
   }
 
   if (firstToken === 'theme') {
-    return { candidates: ['gruvbox-dark', 'nord', 'tokyo-night'], prefix: lastToken };
+    return { candidates: THEME_NAMES, prefix: lastToken };
   }
 
   // No completion for other commands
