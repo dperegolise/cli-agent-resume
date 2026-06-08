@@ -1,0 +1,23 @@
+[Unit]
+Description=Portfolio Agent Backend
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/portfolio
+EnvironmentFile=/var/www/portfolio/.env
+ExecStart=/var/www/portfolio/.venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8001 --workers 1
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/www/portfolio
+
+[Install]
+WantedBy=multi-user.target
