@@ -9,7 +9,8 @@ import { history } from '@codemirror/commands';
 import { markdown } from '@codemirror/lang-markdown';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { tags as t } from '@lezer/highlight';
-import { vim, Vim } from '@replit/codemirror-vim';
+import { vim, Vim, getCM } from '@replit/codemirror-vim';
+import { marked } from 'marked';
 import { bus, EVENT_TYPES } from '../bus.js';
 import { loadFile, getDefaultFile } from './fileLoader.js';
 import { PowerlineBar, powerlineBarExtension } from './statusBar.js';
@@ -85,7 +86,8 @@ const gruvboxTheme = EditorView.theme(
     '.cm-activeLineGutter': { backgroundColor: '#3c3836' },
     '.cm-activeLine':       { backgroundColor: '#3c3836' },
     '.cm-scroller':         { overflow: 'auto' },
-    '.cm-vim-panel':        { display: 'none' },
+    '.cm-vim-panel':        { background: '#1d2021', color: '#ebdbb2', padding: '0 8px', fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', minHeight: '1.4em', borderTop: '1px solid #504945' },
+    '.cm-vim-panel input':  { background: 'transparent', color: '#ebdbb2', fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', outline: 'none', border: 'none', width: '100%' },
   },
   { dark: true },
 );
@@ -104,10 +106,19 @@ const gruvboxTheme = EditorView.theme(
 
 // ─── VimEditor class ──────────────────────────────────────────────────────────
 
+// Configure marked once — no need for a full sanitiser since content is
+// our own static portfolio files, never user-supplied HTML.
+marked.setOptions({ async: false });
+
 export class VimEditor {
   private view: EditorView | null = null;
   private statusBar: PowerlineBar | null = null;
   private _currentFile: string = 'index.md';
+
+  private _previewEl: HTMLElement | null = null;
+  private _hintEl: HTMLElement | null = null;
+  private _editorEl: HTMLElement | null = null;
+  private _inNormalMode: boolean = true;
   private unsubscribeFocusFile: (() => void) | null = null;
 
   /**
@@ -116,6 +127,25 @@ export class VimEditor {
    */
   create(element: HTMLElement, statusBarElement: HTMLElement): void {
     this.statusBar = new PowerlineBar(statusBarElement);
+    this._editorEl = element;
+    this._previewEl = document.getElementById('md-preview');
+
+    // Build the pulsing cursor element (hint text moved to powerline bar)
+    const wrap = element.closest<HTMLElement>('#vim-editor-wrap');
+    if (wrap) {
+      const hint = document.createElement('div');
+      hint.id = 'vim-mode-hint';
+      hint.innerHTML = '<span class="cursor">▋</span>';
+      wrap.appendChild(hint);
+      this._hintEl = hint;
+
+      // Forward wheel events to the preview div so it scrolls despite pointer-events:none
+      wrap.addEventListener('wheel', (e) => {
+        if (!this._previewEl || this._previewEl.style.display === 'none') return;
+        this._previewEl.scrollTop += e.deltaY;
+        e.preventDefault();
+      }, { passive: false });
+    }
 
     const extensions = [
       // Full vim emulation — insert mode, visual mode, operators, registers, macros
@@ -147,6 +177,33 @@ export class VimEditor {
     // Override :w, :wq, :x, :q to be no-ops or graceful
     this.patchVimCommands();
 
+    // Open the editor whenever vim leaves normal mode (i, v, V, etc.).
+    // Closing back to preview only happens via :q / :wq / :x (patchVimCommands).
+    // We do NOT close on Escape — that's normal vim behaviour within the editor.
+    const cm = getCM(this.view);
+    if (cm) {
+      cm.on('vim-mode-change', ({ mode }: { mode: string }) => {
+        if (mode !== 'normal' && this._inNormalMode) {
+          this._setMode(false);
+        }
+      });
+    }
+
+    // Intercept clicks on links inside the preview panel
+    this._previewEl?.addEventListener('click', (e) => {
+      const target = (e.target as Element).closest('a');
+      if (!target) return;
+      e.preventDefault();
+      const href = target.getAttribute('href') ?? '';
+      if (!href || href.startsWith('http://') || href.startsWith('https://')) {
+        if (href) window.open(href, '_blank', 'noopener');
+        return;
+      }
+      // Internal link — treat as a FOCUS_FILE path
+      const path = href.replace(/^\//, '');
+      bus.emit(EVENT_TYPES.FOCUS_FILE, { path, triggerSource: 'preview' });
+    });
+
     // Subscribe to FOCUS_FILE events
     this.unsubscribeFocusFile = bus.subscribe<FocusFileEvent>(
       EVENT_TYPES.FOCUS_FILE,
@@ -155,27 +212,46 @@ export class VimEditor {
       },
     );
 
+    // Start in preview mode. The editor stays visible (keeps vim focus/events)
+    // and the preview + hint overlay it.
+    this._inNormalMode = true;
+    this.view.focus();
+    if (this._previewEl) this._previewEl.style.display = 'block';
+    if (this._hintEl) this._hintEl.style.display = 'flex';
+
     // Load default file
     void this.loadAndDisplayFile('index.md');
   }
 
   /**
-   * Load a file by path and update the editor content with a fade transition.
+   * Load a file by path and update the editor content with a flash transition.
    */
   async loadAndDisplayFile(path: string, lineNumber?: number): Promise<void> {
     if (!this.view || !this.statusBar) return;
 
     this.statusBar.setLoading(true);
 
-    // Apply fade-out class via DOM
+    // Flash the entire editor wrap container on file change (not initial load).
+    if (this._currentFile !== 'index.md' || path !== 'index.md') {
+      const wrapEl = this._editorEl?.closest<HTMLElement>('#vim-editor-wrap');
+      if (wrapEl && this._currentFile) {
+        wrapEl.classList.remove('page-flash');
+        // Force reflow so removing+re-adding the class restarts the animation.
+        void wrapEl.offsetWidth;
+        wrapEl.classList.add('page-flash');
+      }
+    }
+
+    // Also briefly dim the CodeMirror node while content loads.
     const editorEl = this.view.dom;
-    editorEl.style.transition = 'opacity 0.15s ease';
-    editorEl.style.opacity = '0.4';
+    editorEl.style.transition = 'opacity 0.12s ease';
+    editorEl.style.opacity = '0.3';
 
     try {
       const content = await loadFile(path);
       this._currentFile = path;
       this.statusBar.setFile(path);
+      this._renderPreview(content);
 
       // Replace content
       this.view.dispatch({
@@ -216,6 +292,7 @@ export class VimEditor {
       });
     } finally {
       this.statusBar.setLoading(false);
+      editorEl.style.transition = 'opacity 0.18s ease';
       editorEl.style.opacity = '1';
     }
   }
@@ -243,6 +320,57 @@ export class VimEditor {
     this.view = null;
   }
 
+  // ─── Preview / mode swap ────────────────────────────────────────────────────
+
+  private _setMode(normal: boolean): void {
+    if (this._inNormalMode === normal) return;
+    this._inNormalMode = normal;
+
+    if (!this._previewEl) return;
+
+    if (normal) {
+      this._syncPreviewScroll(this._getEditorScrollPct());
+      this._previewEl.style.display = 'block';
+      if (this._hintEl) this._hintEl.style.display = 'flex';
+    } else {
+      const pct = this._previewEl.scrollTop /
+        (this._previewEl.scrollHeight - this._previewEl.clientHeight || 1);
+      this._previewEl.style.display = 'none';
+      if (this._hintEl) this._hintEl.style.display = 'none';
+      this._syncEditorScroll(pct);
+      this.view?.focus();
+    }
+  }
+
+  private _getEditorScrollPct(): number {
+    if (!this.view) return 0;
+    const scroller = this.view.scrollDOM;
+    return scroller.scrollTop / (scroller.scrollHeight - scroller.clientHeight || 1);
+  }
+
+  private _syncPreviewScroll(pct: number): void {
+    if (!this._previewEl) return;
+    requestAnimationFrame(() => {
+      const el = this._previewEl!;
+      el.scrollTop = pct * (el.scrollHeight - el.clientHeight);
+    });
+  }
+
+  private _syncEditorScroll(pct: number): void {
+    if (!this.view) return;
+    requestAnimationFrame(() => {
+      const scroller = this.view!.scrollDOM;
+      scroller.scrollTop = pct * (scroller.scrollHeight - scroller.clientHeight);
+    });
+  }
+
+  private _renderPreview(content: string): void {
+    if (!this._previewEl) return;
+    const stripped = content.replace(/^---\n[\s\S]*?\n---\n?/, '');
+    const html = marked.parse(stripped) as string;
+    this._previewEl.innerHTML = html;
+  }
+
   // ─── Private helpers ────────────────────────────────────────────────────────
 
   private getOffsetForLine(lineNumber: number): number {
@@ -253,16 +381,30 @@ export class VimEditor {
   }
 
   private patchVimCommands(): void {
-    const noop = () => { /* no-op: content is local-only, nothing to write */ };
+    const noop = () => {};
+    const returnToPreview = () => { this._forceNormalMode(); };
     try {
-      // :w / :wq / :x — silently no-op; edits stay local, never sent to server
-      Vim.defineEx('write', 'w', noop);
-      Vim.defineEx('wq', '', noop);
-      Vim.defineEx('x', '', noop);
-      Vim.defineEx('xit', '', noop);
+      Vim.defineEx('write', 'w', noop);           // :w   — no-op (nothing to save)
+      Vim.defineEx('wq', 'wq', returnToPreview);  // :wq  — return to preview
+      Vim.defineEx('wqall', 'wqa', returnToPreview);
+      Vim.defineEx('x', 'x', returnToPreview);    // :x   — return to preview
+      Vim.defineEx('xit', 'xi', returnToPreview);
+      Vim.defineEx('quit', 'q', returnToPreview); // :q   — return to preview
+      Vim.defineEx('qall', 'qa', returnToPreview);// :qa  — return to preview
     } catch (err) {
       console.warn('[VimEditor] Could not patch vim ex-commands:', err);
     }
+  }
+
+  private _forceNormalMode(): void {
+    // Ensure vim state is in normal mode, then show preview
+    if (this.view) {
+      const cm = getCM(this.view);
+      if (cm) Vim.handleKey(cm, '<Esc>', 'mapping');
+    }
+    // _setMode guards against no-op if already normal, so bypass the guard
+    this._inNormalMode = false;
+    this._setMode(true);
   }
 }
 

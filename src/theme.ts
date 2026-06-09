@@ -105,14 +105,221 @@ export const TOKYO_NIGHT: ThemeConfig = {
   colors: tokyoNightColors,
 };
 
+// ─── Solarized Dark ───────────────────────────────────────────────────────────
+
+const solarizedDarkColors: ThemeColors = {
+  bg: '#002b36',
+  fg: '#839496',
+  cursor: '#839496',
+  selection: '#073642',
+  ansi: [
+    '#073642', // 0  black
+    '#dc322f', // 1  red
+    '#859900', // 2  green
+    '#b58900', // 3  yellow
+    '#268bd2', // 4  blue
+    '#d33682', // 5  magenta
+    '#2aa198', // 6  cyan
+    '#eee8d5', // 7  white
+    '#002b36', // 8  bright-black
+    '#cb4b16', // 9  bright-red
+    '#586e75', // 10 bright-green
+    '#657b83', // 11 bright-yellow
+    '#839496', // 12 bright-blue
+    '#6c71c4', // 13 bright-magenta
+    '#93a1a1', // 14 bright-cyan
+    '#fdf6e3', // 15 bright-white
+  ],
+  accentColor: '#2aa198', // solarized cyan — the signature accent
+};
+
+export const SOLARIZED_DARK: ThemeConfig = {
+  name: 'solarized-dark',
+  colors: solarizedDarkColors,
+};
+
+// ─── Dracula ──────────────────────────────────────────────────────────────────
+
+const draculaColors: ThemeColors = {
+  bg: '#282a36',
+  fg: '#f8f8f2',
+  cursor: '#f8f8f2',
+  selection: '#44475a',
+  ansi: [
+    '#21222c', // 0  black
+    '#ff5555', // 1  red
+    '#50fa7b', // 2  green
+    '#f1fa8c', // 3  yellow
+    '#bd93f9', // 4  blue
+    '#ff79c6', // 5  magenta
+    '#8be9fd', // 6  cyan
+    '#f8f8f2', // 7  white
+    '#6272a4', // 8  bright-black
+    '#ff6e6e', // 9  bright-red
+    '#69ff94', // 10 bright-green
+    '#ffffa5', // 11 bright-yellow
+    '#d6acff', // 12 bright-blue
+    '#ff92df', // 13 bright-magenta
+    '#a4ffff', // 14 bright-cyan
+    '#ffffff', // 15 bright-white
+  ],
+  accentColor: '#bd93f9', // dracula purple — the signature accent
+};
+
+export const DRACULA: ThemeConfig = {
+  name: 'dracula',
+  colors: draculaColors,
+};
+
+// ─── GitHub Dark ─────────────────────────────────────────────────────────────
+
+const githubDarkColors: ThemeColors = {
+  bg: '#0d1117',
+  fg: '#c9d1d9',
+  cursor: '#c9d1d9',
+  selection: '#388bfd40',
+  ansi: [
+    '#484f58', // 0  black
+    '#ff7b72', // 1  red
+    '#3fb950', // 2  green
+    '#d29922', // 3  yellow
+    '#58a6ff', // 4  blue
+    '#bc8cff', // 5  magenta
+    '#39c5cf', // 6  cyan
+    '#b1bac4', // 7  white
+    '#6e7681', // 8  bright-black
+    '#ffa198', // 9  bright-red
+    '#56d364', // 10 bright-green
+    '#e3b341', // 11 bright-yellow
+    '#79c0ff', // 12 bright-blue
+    '#d2a8ff', // 13 bright-magenta
+    '#56d4dd', // 14 bright-cyan
+    '#cdd9e5', // 15 bright-white
+  ],
+  accentColor: '#58a6ff', // GitHub blue
+};
+
+export const GITHUB_DARK: ThemeConfig = {
+  name: 'github',
+  colors: githubDarkColors,
+};
+
+// ─── Ubuntu ───────────────────────────────────────────────────────────────────
+
+const ubuntuColors: ThemeColors = {
+  bg: '#300a24',
+  fg: '#ffffff',
+  cursor: '#ffffff',
+  selection: '#ffffff40',
+  ansi: [
+    '#2e3436', // 0  black
+    '#cc0000', // 1  red
+    '#4e9a06', // 2  green
+    '#c4a000', // 3  yellow
+    '#3465a4', // 4  blue
+    '#75507b', // 5  magenta
+    '#06989a', // 6  cyan
+    '#d3d7cf', // 7  white
+    '#555753', // 8  bright-black
+    '#ef2929', // 9  bright-red
+    '#8ae234', // 10 bright-green
+    '#fce94f', // 11 bright-yellow
+    '#729fcf', // 12 bright-blue
+    '#ad7fa8', // 13 bright-magenta
+    '#34e2e2', // 14 bright-cyan
+    '#eeeeec', // 15 bright-white
+  ],
+  accentColor: '#e95420', // Ubuntu orange
+};
+
+export const UBUNTU: ThemeConfig = {
+  name: 'ubuntu',
+  colors: ubuntuColors,
+};
+
+// ─── JetBrains Darcula ────────────────────────────────────────────────────────
+
+const jetbrainsColors: ThemeColors = {
+  bg: '#1e1f22',
+  fg: '#bcbec4',
+  cursor: '#bcbec4',
+  selection: '#214283',
+  ansi: [
+    '#25262b', // 0  black
+    '#f75464', // 1  red
+    '#57965c', // 2  green
+    '#d4a849', // 3  yellow
+    '#3592c4', // 4  blue
+    '#b35eda', // 5  magenta
+    '#37a6a6', // 6  cyan
+    '#bcbec4', // 7  white
+    '#495057', // 8  bright-black
+    '#ff8080', // 9  bright-red
+    '#73c97b', // 10 bright-green
+    '#ffc66d', // 11 bright-yellow
+    '#6ab0d8', // 12 bright-blue
+    '#c77ddb', // 13 bright-magenta
+    '#5dbdbd', // 14 bright-cyan
+    '#d4d5db', // 15 bright-white
+  ],
+  accentColor: '#ffc66d', // JetBrains signature amber/yellow
+};
+
+export const JETBRAINS: ThemeConfig = {
+  name: 'jetbrains',
+  colors: jetbrainsColors,
+};
+
+// ─── VS Code Dark+ ────────────────────────────────────────────────────────────
+
+const vscodeColors: ThemeColors = {
+  bg: '#1e1e1e',
+  fg: '#d4d4d4',
+  cursor: '#aeafad',
+  selection: '#264f78',
+  ansi: [
+    '#000000', // 0  black
+    '#cd3131', // 1  red
+    '#0dbc79', // 2  green
+    '#e5e510', // 3  yellow
+    '#2472c8', // 4  blue
+    '#bc3fbc', // 5  magenta
+    '#11a8cd', // 6  cyan
+    '#e5e5e5', // 7  white
+    '#666666', // 8  bright-black
+    '#f14c4c', // 9  bright-red
+    '#23d18b', // 10 bright-green
+    '#f5f543', // 11 bright-yellow
+    '#3b8eea', // 12 bright-blue
+    '#d670d6', // 13 bright-magenta
+    '#29b8db', // 14 bright-cyan
+    '#e5e5e5', // 15 bright-white
+  ],
+  accentColor: '#007acc', // VS Code blue
+};
+
+export const VSCODE: ThemeConfig = {
+  name: 'vscode',
+  colors: vscodeColors,
+};
+
 // ─── Theme registry ───────────────────────────────────────────────────────────
 
-export const THEME_NAMES: string[] = ['gruvbox-dark', 'nord', 'tokyo-night'];
+export const THEME_NAMES: string[] = [
+  'gruvbox-dark', 'nord', 'tokyo-night', 'solarized-dark',
+  'dracula', 'github', 'ubuntu', 'jetbrains', 'vscode',
+];
 
 const THEMES: Record<string, ThemeConfig> = {
   'gruvbox-dark': GRUVBOX_DARK,
   'nord': NORD,
   'tokyo-night': TOKYO_NIGHT,
+  'solarized-dark': SOLARIZED_DARK,
+  'dracula': DRACULA,
+  'github': GITHUB_DARK,
+  'ubuntu': UBUNTU,
+  'jetbrains': JETBRAINS,
+  'vscode': VSCODE,
 };
 
 // ─── CSS variable application ─────────────────────────────────────────────────

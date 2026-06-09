@@ -46,6 +46,10 @@ body {
   position: relative;
 }
 
+/* Hide xterm.js scrollbar inside the agent sidebar */
+#agent-shell .xterm-viewport::-webkit-scrollbar { display: none; }
+#agent-shell .xterm-viewport { scrollbar-width: none; }
+
 /* ─── Vertical divider (column 2, all rows) ───────────────────────────────── */
 
 #divider-vertical {
@@ -122,6 +126,17 @@ body {
   overflow: hidden;
 }
 
+/* Page-load flash: brief border + background pulse when a new file is focused */
+@keyframes page-load-flash {
+  0%   { background-color: var(--bg-main); box-shadow: inset 0 0 0 1px transparent; }
+  15%  { background-color: color-mix(in srgb, var(--tmux-green) 8%, var(--bg-main)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tmux-green) 35%, transparent); }
+  100% { background-color: var(--bg-main); box-shadow: inset 0 0 0 1px transparent; }
+}
+
+#vim-editor-wrap.page-flash {
+  animation: page-load-flash 0.55s ease-out forwards;
+}
+
 /* Legacy alias: strategy uses both vim-editor-container and vim-editor-wrap  */
 #vim-editor-container {
   flex: 1;
@@ -129,6 +144,123 @@ body {
   flex-direction: column;
   overflow: hidden;
 }
+
+/* ─── Markdown preview (normal mode) ──────────────────────────────────────── */
+/* Overlays the CM editor so the editor stays focused and vim receives keys.   */
+
+#vim-editor-wrap { position: relative; }
+
+#md-preview {
+  position: absolute;
+  inset: 0;
+  bottom: 26px; /* clear the powerline bar */
+  overflow-y: auto;
+  padding: 16px 20px;
+  background: var(--bg-main);
+  color: var(--fg-main);
+  font-family: 'JetBrains Mono', 'Symbols Nerd Font', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  display: none; /* shown in normal mode */
+  z-index: 2;
+  /* pointer-events disabled so clicks reach the CM editor underneath;
+     scroll is handled by forwarding wheel events in vim.ts */
+  pointer-events: none;
+}
+
+/* Re-enable pointer events only on links so they remain clickable */
+#md-preview a { pointer-events: auto; }
+
+/* Pulsing cursor + hint shown in normal (preview) mode */
+@keyframes pulse {
+  0%, 100% { opacity: 0.45; }
+  50%       { opacity: 0.15; }
+}
+
+#vim-mode-hint {
+  position: absolute;
+  bottom: 34px; /* above powerline bar */
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+#vim-mode-hint .cursor {
+  color: var(--tmux-green);
+  animation: pulse 2.8s ease-in-out infinite;
+  font-size: 13px;
+  line-height: 1;
+}
+
+#md-preview h1, #md-preview h2, #md-preview h3,
+#md-preview h4, #md-preview h5, #md-preview h6 {
+  margin: 1em 0 0.4em;
+  line-height: 1.3;
+  font-weight: bold;
+}
+#md-preview h1 { color: #fb4934; font-size: 1.4em; border-bottom: 1px solid #3c3836; padding-bottom: 0.3em; }
+#md-preview h2 { color: #fabd2f; font-size: 1.2em; }
+#md-preview h3 { color: #b8bb26; font-size: 1.05em; }
+#md-preview h4, #md-preview h5, #md-preview h6 { color: #fe8019; font-size: 1em; }
+
+#md-preview p { margin: 0 0 0.8em; }
+
+#md-preview a { color: #83a598; text-decoration: underline; cursor: pointer; }
+#md-preview a:hover { color: #8ec07c; }
+
+#md-preview code {
+  background: #3c3836;
+  color: #8ec07c;
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+#md-preview pre {
+  background: #3c3836;
+  border-left: 3px solid #504945;
+  padding: 10px 14px;
+  overflow-x: auto;
+  margin: 0.8em 0;
+  border-radius: 3px;
+}
+#md-preview pre code { background: none; padding: 0; }
+
+#md-preview blockquote {
+  border-left: 3px solid #504945;
+  margin: 0.8em 0;
+  padding: 0 12px;
+  color: #928374;
+}
+
+#md-preview ul, #md-preview ol {
+  margin: 0 0 0.8em 1.4em;
+  padding: 0;
+}
+#md-preview li { margin: 0.2em 0; }
+
+#md-preview hr {
+  border: none;
+  border-top: 1px solid #3c3836;
+  margin: 1.2em 0;
+}
+
+#md-preview strong { color: #ebdbb2; font-weight: bold; }
+#md-preview em { color: #d3869b; font-style: italic; }
+
+#md-preview table {
+  border-collapse: collapse;
+  margin: 0.8em 0;
+  width: 100%;
+}
+#md-preview th, #md-preview td {
+  border: 1px solid #504945;
+  padding: 4px 10px;
+  text-align: left;
+}
+#md-preview th { background: #3c3836; color: #fabd2f; }
 
 /* ─── CodeMirror editor (fills available space) ───────────────────────────── */
 

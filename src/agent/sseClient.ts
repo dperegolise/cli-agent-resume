@@ -12,6 +12,7 @@
 
 import { bus, EVENT_TYPES } from '../bus.js';
 import { validatePath } from '../manifest.js';
+import { markdownToAnsi } from './mdAnsi.js';
 import type { AgentTerminal } from './terminal.js';
 import type {
   ChatMessage,
@@ -33,9 +34,14 @@ const HISTORY_MAX = 20;
 const BAN_STORAGE_KEY = 'agent_banned_until';
 
 // ANSI escape codes
-const ANSI_RED = '\x1b[31m';
+const ANSI_RED    = '\x1b[31m';
 const ANSI_YELLOW = '\x1b[33m';
-const ANSI_RESET = '\x1b[0m';
+const ANSI_DIM    = '\x1b[2m';
+const ANSI_RESET  = '\x1b[0m';
+const ANSI_BOLD   = '\x1b[1m';
+const ANSI_CYAN   = '\x1b[38;5;108m'; // gruvbox aqua — user prompt color
+
+const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
 // ─── SSEClient ────────────────────────────────────────────────────────────────
 
@@ -53,6 +59,14 @@ export class SSEClient {
   // time from the backend, so we can't peek ahead within a single token).
   private wrapCol = 0;
   private wordBuf = '';
+  // Accumulated raw text of the current response (rendered as markdown on done).
+  private streamBuf = '';
+  // Interval timer and frame counter for the spinner animation.
+  private spinnerTimer: ReturnType<typeof setInterval> | null = null;
+  private spinnerFrame = 0;
+  // Set to true once search_results have been written, so we insert a blank
+  // line before the response text begins.
+  private hadSearchResults = false;
 
   constructor(terminal: AgentTerminal) {
     this.terminal = terminal;
@@ -74,6 +88,7 @@ export class SSEClient {
       this.currentAbortController.abort();
       this.currentAbortController = null;
       this.streaming = false;
+      this.stopSpinner();
       this.terminal.write('\r\n' + ANSI_YELLOW + '^C' + ANSI_RESET + '\r\n');
     }
   }
@@ -119,9 +134,11 @@ export class SSEClient {
       }
     }
 
+    // ── Echo user prompt ───────────────────────────────────────────────────
+    this.terminal.writeln(`\r\n${ANSI_DIM}you>${ANSI_RESET} ${ANSI_CYAN}${msg}${ANSI_RESET}`);
+
     // ── Append user turn to history ────────────────────────────────────────
     this.history.push({ role: 'user', content: msg });
-    // Keep rolling window
     if (this.history.length > HISTORY_MAX) {
       this.history = this.history.slice(-HISTORY_MAX);
     }
@@ -202,8 +219,13 @@ export class SSEClient {
     }
 
     // ── Stream SSE events ──────────────────────────────────────────────────
+    this.terminal.write('\r\n');
     this.wrapCol = 0;
     this.wordBuf = '';
+    this.streamBuf = '';
+    this.spinnerFrame = 0;
+    this.hadSearchResults = false;
+    this.startSpinner();
     let assistantContent = '';
     try {
       assistantContent = await this.streamSSE(response);
@@ -296,8 +318,7 @@ export class SSEClient {
     switch (evt.type) {
       case 'token': {
         const tokenEvt = evt as SSETokenEvent;
-        this.writeWrapped(tokenEvt.content);
-        this.terminal.scrollToBottom();
+        this.streamBuf += tokenEvt.content;
         return tokenEvt.content;
       }
 
@@ -324,26 +345,35 @@ export class SSEClient {
 
       case 'search_results': {
         const searchEvt = evt as SSESearchResultsEvent;
+        this.stopSpinner();
         this.writeSearchResults(searchEvt);
+        this.hadSearchResults = true;
+        this.startSpinner();
         return '';
       }
 
       case 'done': {
-        const _done = evt as SSEDoneEvent;
-        void _done;
-        this.flushWordBuf();
+        void (evt as SSEDoneEvent);
+        this.stopSpinner();
+        // Clear spinner line, optionally insert blank line after search results.
+        this.terminal.write('\r\x1b[2K');
+        if (this.hadSearchResults) this.terminal.write('\r\n');
+        const formatted = markdownToAnsi(this.streamBuf.trim());
+        this.terminal.writeln(formatted);
+        this.terminal.write('\r\nagent> ');
+        this.streamBuf = '';
+        this.spinnerFrame = 0;
+        this.hadSearchResults = false;
         this.wrapCol = 0;
         this.wordBuf = '';
-        this.terminal.write('\r\n\r\nagent> ');
         this.terminal.scrollToBottom();
         return '';
       }
 
       case 'error': {
         const errorEvt = evt as SSEErrorEvent;
-        this.terminal.writeln(
-          '\r\n' + ANSI_RED + `Error: ${errorEvt.message}` + ANSI_RESET,
-        );
+        this.stopSpinner();
+        this.terminal.writeln(ANSI_RED + `Error: ${errorEvt.message}` + ANSI_RESET);
         this.terminal.write('\r\nagent> ');
         this.terminal.scrollToBottom();
         return '';
@@ -376,22 +406,40 @@ export class SSEClient {
       if (ch === ' ') {
         // Flush the buffered word now that we know its full length.
         this.flushWordBuf();
-        // Emit the space, or turn it into a line break if we're near the edge
-        // and more text is coming (non-trailing space).
-        if (i < text.length - 1) {
-          if (this.wrapCol + 1 >= cols) {
-            this.terminal.write('\r\n');
-            this.wrapCol = 0;
-          } else {
-            this.terminal.write(' ');
-            this.wrapCol++;
-          }
+        // Always emit the space (or swap for \r\n if at column edge).
+        // The trailing-space case must NOT be skipped — the next token starts
+        // a new word that needs this space (or break) as a separator.
+        if (this.wrapCol + 1 >= cols) {
+          this.terminal.write('\r\n');
+          this.wrapCol = 0;
+        } else {
+          this.terminal.write(' ');
+          this.wrapCol++;
         }
         continue;
       }
       this.wordBuf += ch;
     }
     // Don't flush here — the word may continue in the next token.
+  }
+
+  /** Start the braille spinner animating on a 100ms interval. */
+  private startSpinner(): void {
+    this.stopSpinner();
+    this.spinnerTimer = setInterval(() => {
+      const frame = SPINNER_FRAMES[this.spinnerFrame % SPINNER_FRAMES.length]!;
+      this.spinnerFrame++;
+      this.terminal.write(`\r\x1b[2K${ANSI_DIM}${frame} thinking…${ANSI_RESET}`);
+    }, 100);
+  }
+
+  /** Stop the spinner and clear its line. */
+  private stopSpinner(): void {
+    if (this.spinnerTimer !== null) {
+      clearInterval(this.spinnerTimer);
+      this.spinnerTimer = null;
+    }
+    this.terminal.write('\r\x1b[2K');
   }
 
   /** Flush the buffered word to the terminal, breaking before it if needed. */
@@ -411,15 +459,19 @@ export class SSEClient {
   private writeSearchResults(evt: SSESearchResultsEvent): void {
     const { results } = evt;
     if (!results || results.length === 0) {
-      this.terminal.writeln('\r\n' + ANSI_YELLOW + 'No results found.' + ANSI_RESET);
+      this.terminal.writeln(ANSI_YELLOW + 'No results found.' + ANSI_RESET);
       return;
     }
 
-    this.terminal.writeln('');
     for (const result of results) {
-      this.terminal.writeln(
-        `\x1b[2m·\x1b[0m \x1b[33m${result.path}\x1b[0m \x1b[2m${result.title}\x1b[0m`,
-      );
+      this.wrapCol = 0;
+      // Red colon prefix to indicate the file was read.
+      this.terminal.write(`${ANSI_RED}:${ANSI_RESET} ${ANSI_BOLD}${result.path}${ANSI_RESET} ${ANSI_DIM}`);
+      this.wrapCol = result.path.length + 3; // ': ' + path + ' '
+      this.writeWrapped(result.title);
+      this.flushWordBuf();
+      this.terminal.write(`${ANSI_RESET}\r\n`);
+      this.wrapCol = 0;
     }
   }
 }

@@ -145,6 +145,13 @@ const CSS = `
   color: var(--ansi-8, #928374);
   font-size: 10px;
 }
+
+.powerline-hint {
+  padding: 0 8px;
+  color: #504945;
+  font-style: italic;
+  font-size: 10px;
+}
 `;
 
 let cssInjected = false;
@@ -288,6 +295,7 @@ export class PowerlineBar {
         <span class="powerline-ro">[RO]</span>
       </div>
       <div class="powerline-segment" style="height:100%">
+        ${mode === 'NORMAL' ? `<span class="powerline-hint">press i to edit</span>` : ''}
         <span class="powerline-filetype">${escapeHtml(fileType)}</span>
         <span class="powerline-sep powerline-sep-right-accent">${SEP_LEFT}</span>
         <span class="powerline-linecol">${lineNum}:${colNum}</span>

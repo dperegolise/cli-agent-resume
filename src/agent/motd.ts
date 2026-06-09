@@ -1,21 +1,9 @@
 /**
  * src/agent/motd.ts — Welcome MOTD for the agent terminal.
- * Prints a bordered welcome box with clickable options [1]–[4].
- * After the box, appends one random interesting fact about Daniel.
  */
 
 import type { AgentTerminal } from './terminal.js';
 import type { SSEClient } from './sseClient.js';
-
-// ─── Interesting facts about Daniel ──────────────────────────────────────────
-
-const FACTS: readonly string[] = [
-  '💡 Fun fact: Daniel once shipped a full-stack product in under 48 hours at a hackathon.',
-  '⚙️  Fun fact: Daniel has contributed to open-source CLI tools used by thousands of devs.',
-  "🌍 Fun fact: Daniel's code has run in production on 3 different continents.",
-  '🔭 Fun fact: Daniel built an AI-powered code review bot before LLMs were mainstream.',
-  "🎯 Fun fact: Daniel's favorite debugging technique is rubber duck debugging — with a real duck.",
-];
 
 // ─── Quick-action mapping ─────────────────────────────────────────────────────
 
@@ -26,56 +14,64 @@ export interface QuickAction {
 }
 
 export const QUICK_ACTIONS: readonly QuickAction[] = [
-  { key: '1', label: 'About me',    query: 'Tell me about Daniel' },
-  { key: '2', label: 'Projects',    query: 'Show me Daniel\'s projects' },
-  { key: '3', label: 'Experience',  query: 'What is Daniel\'s work experience?' },
-  { key: '4', label: 'Contact',     query: 'How can I contact Daniel?' },
+  { key: '1', label: 'About me',   query: 'Tell me about Daniel' },
+  { key: '2', label: 'Projects',   query: "Show me Daniel's projects" },
+  { key: '3', label: 'Experience', query: "What is Daniel's work experience?" },
+  { key: '4', label: 'Contact',    query: 'How can I contact Daniel?' },
 ];
+
+// ─── ANSI palette ─────────────────────────────────────────────────────────────
+
+const R  = '\x1b[0m';           // reset
+const B  = '\x1b[1m';           // bold
+const D  = '\x1b[2m';           // dim
+const GN = '\x1b[38;5;142m';   // gruvbox yellow-green  (logo name)
+const AQ = '\x1b[38;5;108m';   // gruvbox aqua          (borders + accents)
+const YL = '\x1b[38;5;214m';   // gruvbox orange-yellow (keys)
+const WH = '\x1b[38;5;223m';   // gruvbox fg light      (body text)
 
 // ─── MOTD rendering ───────────────────────────────────────────────────────────
 
-/**
- * Print the bordered welcome box and a random interesting fact.
- * The options [1]–[4] are highlighted as clickable-looking links via
- * OSC 8 hyperlink sequences (supported by xterm.js WebLinksAddon).
- *
- * @param terminal   The AgentTerminal instance to write into.
- * @param sseClient  The SSEClient (passed so click handlers can trigger queries).
- */
 export function printMOTD(terminal: AgentTerminal, _sseClient: SSEClient): void {
-  // OSC 8 link helper:  ESC ] 8 ; params ; uri ST  text  ESC ] 8 ;; ST
-  // xterm.js WebLinksAddon detects these and makes them clickable.
   const link = (uri: string, text: string): string =>
     `\x1b]8;;${uri}\x1b\\${text}\x1b]8;;\x1b\\`;
 
-  const line = (text: string): void => terminal.writeln(text);
+  const ln = (text = ''): void => terminal.writeln(text);
 
-  line('');
-  line('  \x1b[38;5;108m╭─────────────────────────────────────╮\x1b[0m');
-  line("  \x1b[38;5;108m│\x1b[0m  Hi, I'm Daniel's portfolio agent.  \x1b[38;5;108m│\x1b[0m");
-  line('  \x1b[38;5;108m│\x1b[0m  Ask me anything, or try:           \x1b[38;5;108m│\x1b[0m');
-  line('  \x1b[38;5;108m│\x1b[0m                                     \x1b[38;5;108m│\x1b[0m');
+  // ── Logo block ──────────────────────────────────────────────────────────────
+  //   Wide enough to feel substantial; narrow enough to fit the panel.
+  //   Inner width: 37 chars.
+
+  const border = `${AQ}│${R}`;
+  const TL = `${AQ}╭${'─'.repeat(37)}╮${R}`;
+  const BL = `${AQ}╰${'─'.repeat(37)}╯${R}`;
+  const DIV = `${AQ}├${'─'.repeat(37)}┤${R}`;
+  const pad = (text: string, vis: number) =>
+    `${border} ${text}${' '.repeat(Math.max(0, 36 - vis))}${border}`;
+
+  ln();
+  ln(`  ${TL}`);
+  ln(`  ${pad(`${B}${GN}Daniel Peregolise${R}`, 18)}`);
+  ln(`  ${pad(`${D}${WH}engineer · ai/ml · systems${R}`, 26)}`);
+  ln(`  ${DIV}`);
+  ln(`  ${pad(`${WH}Hi — I'm Daniel's portfolio AI.${R}`, 31)}`);
+  ln(`  ${pad(`${D}${WH}Ask me anything or pick a shortcut:${R}`, 35)}`);
+  ln(`  ${pad('', 0)}`);
 
   for (const action of QUICK_ACTIONS) {
-    // Use agent: URI scheme for option links — WebLinksAddon will make them
-    // clickable; the inputHandler watches for the agent: prefix.
     const uri = `agent:query:${encodeURIComponent(action.query)}`;
-    const optionLabel = link(uri, `\x1b[1;33m[${action.key}] ${action.label}\x1b[0m`);
-    // Pad to fill the box width (37 visible chars inner width)
-    const padded = `  \x1b[38;5;108m│\x1b[0m  ${optionLabel}`;
-    line(padded);
+    const keyStr  = `${B}${YL}[${action.key}]${R}`;
+    const keyVis  = 3;
+    const labelStr = `${WH}${action.label}${R}`;
+    const labelVis = action.label.length;
+    const entry = link(uri, `${keyStr} ${labelStr}`);
+    ln(`  ${pad(`  ${entry}`, 2 + keyVis + 1 + labelVis)}`);
   }
 
-  line('  \x1b[38;5;108m│\x1b[0m                                     \x1b[38;5;108m│\x1b[0m');
-  line('  \x1b[38;5;108m╰─────────────────────────────────────╯\x1b[0m');
-  line('');
+  ln(`  ${pad('', 0)}`);
+  ln(`  ${BL}`);
+  ln();
 
-  // Random fact
-  const fact = FACTS[Math.floor(Math.random() * FACTS.length)] ?? FACTS[0];
-  line('  \x1b[2m' + fact + '\x1b[0m');
-  line('');
-
-  // Initial prompt
   terminal.write('agent> ');
   terminal.scrollToBottom();
 }

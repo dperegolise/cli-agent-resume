@@ -138,6 +138,32 @@ export class AgentTerminal {
     this.term.write(text + '\r\n');
   }
 
+  /**
+   * Write plain (no ANSI) text with word-aware wrapping, then a newline.
+   * Used for MOTD lines that should respect the terminal column width.
+   */
+  writelnWrapped(prefix: string, text: string): void {
+    const cols = this.term.cols;
+    let col = prefix.length;
+    this.term.write(prefix);
+    const words = text.split(' ');
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i]!;
+      if (i > 0) {
+        if (col + 1 + word.length > cols) {
+          this.term.write('\r\n' + ' '.repeat(prefix.length));
+          col = prefix.length;
+        } else {
+          this.term.write(' ');
+          col++;
+        }
+      }
+      this.term.write(word);
+      col += word.length;
+    }
+    this.term.write('\r\n');
+  }
+
   /** Register a handler for user input data. Returns unsubscribe fn. */
   onData(handler: (data: string) => void): () => void {
     const disposable = this.term.onData(handler);

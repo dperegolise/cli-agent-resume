@@ -20,11 +20,14 @@ const G = '\x1b[92m';
 const C = '\x1b[96m';
 const R = '\x1b[0m';
 
+const D = '\x1b[2m';  // dim
+
 const SPLASH_LINES = [
   '',
   `  ${Y}PORTFOLIO${R} ${C}///${R} ${G}Daniel Peregolise${R}`,
   `  ${C}${'─'.repeat(38)}${R}`,
   `  Type ${G}'help'${R} for available commands.`,
+  `  ${D}~ try: ls · search rust · cat about.md | grep -i skills${R}`,
   '',
 ];
 
