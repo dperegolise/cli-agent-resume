@@ -64,7 +64,7 @@ function cmdHelp(ctx: CommandContext): void {
     r('help',   '',          'This help'),
     r('ls',     '[section]', 'List pages'),
     r('view',   '<path>',    'Open in editor  (about · projects · contact)'),
-    r('search', '<query>',   'Search portfolio'),
+    r('search', '[-i] [-n] <query>', 'Grep all files'),
     r('clear',  '',          'Clear terminal'),
     r('theme',  '<name>',    'Switch color theme'),
   ];
@@ -183,79 +183,71 @@ function cmdView(ctx: CommandContext, args: string[]): void {
 }
 
 async function cmdSearch(ctx: CommandContext, args: string[]): Promise<void> {
-  const query = args.join(' ').trim();
+  // Flags: -i (case-insensitive), -n (show line numbers)
+  let caseInsensitive = false;
+  let showLineNumbers = false;
+  const queryParts: string[] = [];
+
+  for (const arg of args) {
+    if (arg === '-i') { caseInsensitive = true; continue; }
+    if (arg === '-n') { showLineNumbers = true; continue; }
+    if (arg === '-in' || arg === '-ni') { caseInsensitive = true; showLineNumbers = true; continue; }
+    queryParts.push(arg);
+  }
+
+  const query = queryParts.join(' ').trim();
   if (!query) {
-    ctx.write(colorize(ANSI.red, 'search: missing query. Usage: search <query>'));
+    ctx.write(colorize(ANSI.red, 'search: missing query. Usage: search [-i] [-n] <query>'));
+    return;
+  }
+
+  let re: RegExp;
+  try {
+    re = new RegExp(query, caseInsensitive ? 'gi' : 'g');
+  } catch {
+    ctx.write(colorize(ANSI.red, `search: invalid pattern: ${query}`));
     return;
   }
 
   ctx.write(colorize(ANSI.dim, `Searching for '${query}'...`));
 
-  try {
-    const resp = await fetch('/agent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: [{ role: 'user', content: `search: ${query}` }],
-        session_id: `cli-search-${Date.now()}`,
-      }),
-    });
+  const paths = getAllPaths();
+  let totalMatches = 0;
 
-    if (!resp.ok || !resp.body) {
-      ctx.write(colorize(ANSI.red, `search: server error (${resp.status})`));
-      return;
-    }
+  for (const filePath of paths) {
+    const content = await fetchFileContent(filePath);
+    if (content === null) continue;
 
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-    let gotResults = false;
+    const entry = getManifestEntry(filePath);
+    const lines = content.split('\n');
+    const hits: Array<{ num: number; line: string }> = [];
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() ?? '';
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const rawJson = line.slice(6).trim();
-        if (rawJson === '[DONE]' || rawJson === '') continue;
-
-        try {
-          const event = JSON.parse(rawJson) as { type: string; results?: Array<{ path: string; title: string; excerpt: string; score: number }> };
-          if (event.type === 'search_results' && Array.isArray(event.results)) {
-            gotResults = true;
-            ctx.write('');
-            ctx.write(colorize(ANSI.bold + ANSI.brightYellow, `Results for '${query}':`));
-            ctx.write('');
-            for (const r of event.results) {
-              ctx.write(`  ${colorize(ANSI.brightCyan, r.path)}  ${colorize(ANSI.dim, r.title)}`);
-              if (r.excerpt) {
-                ctx.write(`    ${colorize(ANSI.dim, r.excerpt)}`);
-              }
-            }
-            ctx.write('');
-          } else if (event.type === 'token') {
-            // Ignore streaming tokens in search results
-          } else if (event.type === 'done') {
-            break;
-          } else if (event.type === 'error') {
-            ctx.write(colorize(ANSI.red, `search error: ${(event as { message?: string }).message ?? 'unknown'}`));
-          }
-        } catch {
-          // Ignore malformed SSE lines
-        }
+    for (let i = 0; i < lines.length; i++) {
+      re.lastIndex = 0;
+      if (re.test(lines[i]!)) {
+        hits.push({ num: i + 1, line: lines[i]! });
       }
     }
 
-    if (!gotResults) {
-      ctx.write(colorize(ANSI.dim, `No results found for '${query}'.`));
+    if (hits.length === 0) continue;
+
+    totalMatches += hits.length;
+    ctx.write('');
+    ctx.write(`  ${colorize(ANSI.brightCyan, filePath)}  ${colorize(ANSI.dim, entry?.title ?? '')}`);
+
+    for (const { num, line } of hits) {
+      const prefix = showLineNumbers ? colorize(ANSI.dim, String(num) + ':') : '    ';
+      // Highlight the match within the line
+      const highlighted = line.replace(re, (m) => colorize(ANSI.bold + ANSI.brightYellow, m));
+      ctx.write(`  ${prefix}${highlighted}`);
     }
-  } catch (err) {
-    ctx.write(colorize(ANSI.red, `search: network error — ${(err as Error).message}`));
+  }
+
+  ctx.write('');
+  if (totalMatches === 0) {
+    ctx.write(colorize(ANSI.dim, `No results found for '${query}'.`));
+  } else {
+    ctx.write(colorize(ANSI.dim, `${totalMatches} match${totalMatches === 1 ? '' : 'es'} across ${paths.length} files.`));
   }
 }
 
