@@ -117,6 +117,27 @@ export async function main(): Promise<void> {
   // ── File explorer (m4): loads manifest, renders NERDTree ────────────────
   void initFileExplorerPanel(fileExplorerEl).then(() => {
     log.info('File explorer mounted');
+    // Populate the mobile sidebar with a clone of the desktop explorer tree.
+    // data-path attributes are preserved by cloneNode; we add a delegated
+    // click listener to re-wire navigation since event handlers don't clone.
+    const mobileSidebarEl =
+      document.getElementById('mobile-explorer-sidebar') ??
+      document.getElementById('mobile-sidebar');
+    if (mobileSidebarEl) {
+      mobileSidebarEl.innerHTML = '';
+      // Clone the inner .nerd-tree element (not #file-explorer) so the mobile
+      // CSS rule that hides #file-explorer by ID doesn't apply to the clone.
+      const treeEl = fileExplorerEl.querySelector('.nerd-tree') ?? fileExplorerEl;
+      mobileSidebarEl.appendChild(treeEl.cloneNode(true));
+      mobileSidebarEl.addEventListener('click', (e) => {
+        const item = (e.target as HTMLElement).closest<HTMLElement>('[data-path]');
+        if (!item?.dataset['path']) return;
+        bus.emit(EVENT_TYPES.FOCUS_FILE, {
+          path: item.dataset['path'],
+          triggerSource: 'explorer',
+        });
+      });
+    }
   }).catch((err: unknown) => {
     log.error('File explorer failed to mount', err);
   });

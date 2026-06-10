@@ -55,7 +55,7 @@ export class MobileLayout {
     this.backdropEl = document.getElementById('mobile-backdrop');
 
     // Wire hamburger click
-    this.hamburgerEl?.addEventListener('click', () => this.open());
+    this.hamburgerEl?.addEventListener('click', () => this.toggleSidebar());
 
     // Wire backdrop click → close
     this.backdropEl?.addEventListener('click', () => this.close());
@@ -81,7 +81,10 @@ export class MobileLayout {
   open(): void {
     this._open = true;
 
-    this.sidebarEl?.classList.add('open', 'sidebar-open');
+    if (this.sidebarEl) {
+      this.sidebarEl.style.display = 'block';
+      this.sidebarEl.classList.add('open', 'sidebar-open');
+    }
 
     if (this.backdropEl) {
       this.backdropEl.style.display = 'block';
@@ -93,7 +96,13 @@ export class MobileLayout {
   close(): void {
     this._open = false;
 
-    this.sidebarEl?.classList.remove('open', 'sidebar-open');
+    if (this.sidebarEl) {
+      this.sidebarEl.classList.remove('open', 'sidebar-open');
+      // Wait for the slide-out transition to finish before hiding
+      this.sidebarEl.addEventListener('transitionend', () => {
+        if (!this._open) this.sidebarEl!.style.display = 'none';
+      }, { once: true });
+    }
 
     if (this.backdropEl) {
       this.backdropEl.style.display = 'none';

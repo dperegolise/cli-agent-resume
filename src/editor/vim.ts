@@ -207,8 +207,23 @@ export class VimEditor {
         if (href) window.open(href, '_blank', 'noopener');
         return;
       }
-      // Internal link — treat as a FOCUS_FILE path
-      const path = href.replace(/^\//, '');
+      // Internal link — resolve relative paths against the current file's directory
+      let path = href.replace(/^\//, '');
+      if (!path.startsWith('http') && !path.includes(':') && !path.startsWith('/')) {
+        // Relative path: resolve against current file's directory
+        const dir = this._currentFile.includes('/')
+          ? this._currentFile.slice(0, this._currentFile.lastIndexOf('/') + 1)
+          : '';
+        path = dir + path;
+        // Collapse any ../ segments
+        const parts = path.split('/');
+        const resolved: string[] = [];
+        for (const p of parts) {
+          if (p === '..') resolved.pop();
+          else if (p !== '.') resolved.push(p);
+        }
+        path = resolved.join('/');
+      }
       bus.emit(EVENT_TYPES.FOCUS_FILE, { path, triggerSource: 'preview' });
     });
 
