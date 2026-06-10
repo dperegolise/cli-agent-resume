@@ -14,80 +14,80 @@ import { marked } from 'marked';
 import { bus, EVENT_TYPES } from '../bus.js';
 import { loadFile, getDefaultFile } from './fileLoader.js';
 import { PowerlineBar, powerlineBarExtension } from './statusBar.js';
-import { GRUVBOX_DARK } from '../theme.js';
+import { DEFAULT } from '../theme.js';
 import type { FocusFileEvent } from '../types.js';
 
-// ─── Gruvbox syntax highlight style ──────────────────────────────────────────
+// ─── Default theme syntax highlight style ────────────────────────────────────
 
 const gruvboxHighlight = HighlightStyle.define([
   // Headings: red → yellow → green by level
-  { tag: t.heading1,       color: '#fb4934', fontWeight: 'bold' },
-  { tag: t.heading2,       color: '#fabd2f', fontWeight: 'bold' },
-  { tag: t.heading3,       color: '#b8bb26', fontWeight: 'bold' },
-  { tag: t.heading,        color: '#fe8019', fontWeight: 'bold' },
+  { tag: t.heading1,       color: '#e06c75', fontWeight: 'bold' },
+  { tag: t.heading2,       color: '#d4a76a', fontWeight: 'bold' },
+  { tag: t.heading3,       color: '#5faf87', fontWeight: 'bold' },
+  { tag: t.heading,        color: '#d4a76a', fontWeight: 'bold' },
   // Emphasis / strong
-  { tag: t.emphasis,       color: '#d3869b', fontStyle: 'italic' },
-  { tag: t.strong,         color: '#ebdbb2', fontWeight: 'bold' },
+  { tag: t.emphasis,       color: '#9b84c2', fontStyle: 'italic' },
+  { tag: t.strong,         color: '#dde1e8', fontWeight: 'bold' },
   // Links
-  { tag: t.link,           color: '#83a598', textDecoration: 'underline' },
-  { tag: t.url,            color: '#8ec07c' },
+  { tag: t.link,           color: '#5eacd3', textDecoration: 'underline' },
+  { tag: t.url,            color: '#4dbdcb' },
   // Code
-  { tag: t.monospace,      color: '#8ec07c', fontFamily: "'JetBrains Mono', monospace" },
-  { tag: t.contentSeparator, color: '#928374' },
+  { tag: t.monospace,      color: '#4dbdcb', fontFamily: "'JetBrains Mono', monospace" },
+  { tag: t.contentSeparator, color: '#3d4351' },
   // Quotes / comments
-  { tag: t.comment,        color: '#928374', fontStyle: 'italic' },
-  { tag: t.blockComment,   color: '#928374', fontStyle: 'italic' },
+  { tag: t.comment,        color: '#3d4351', fontStyle: 'italic' },
+  { tag: t.blockComment,   color: '#3d4351', fontStyle: 'italic' },
   // Lists / punctuation
-  { tag: t.list,           color: '#fe8019' },
-  { tag: t.punctuation,    color: '#a89984' },
-  { tag: t.processingInstruction, color: '#d3869b' },
+  { tag: t.list,           color: '#d4a76a' },
+  { tag: t.punctuation,    color: '#9ca3af' },
+  { tag: t.processingInstruction, color: '#9b84c2' },
   // Strings / atoms
-  { tag: t.string,         color: '#b8bb26' },
-  { tag: t.atom,           color: '#d3869b' },
+  { tag: t.string,         color: '#5faf87' },
+  { tag: t.atom,           color: '#9b84c2' },
   // Keywords / operators (for embedded code blocks)
-  { tag: t.keyword,        color: '#fb4934' },
-  { tag: t.operator,       color: '#8ec07c' },
-  { tag: t.number,         color: '#d3869b' },
-  { tag: t.bool,           color: '#d3869b' },
-  { tag: t.variableName,   color: '#83a598' },
-  { tag: t.function(t.variableName), color: '#b8bb26' },
-  { tag: t.typeName,       color: '#fabd2f' },
-  { tag: t.className,      color: '#fabd2f' },
-  { tag: t.propertyName,   color: '#83a598' },
-  { tag: t.tagName,        color: '#fb4934' },
-  { tag: t.attributeName,  color: '#fabd2f' },
-  { tag: t.attributeValue, color: '#b8bb26' },
+  { tag: t.keyword,        color: '#e06c75' },
+  { tag: t.operator,       color: '#4dbdcb' },
+  { tag: t.number,         color: '#9b84c2' },
+  { tag: t.bool,           color: '#9b84c2' },
+  { tag: t.variableName,   color: '#5eacd3' },
+  { tag: t.function(t.variableName), color: '#5faf87' },
+  { tag: t.typeName,       color: '#d4a76a' },
+  { tag: t.className,      color: '#d4a76a' },
+  { tag: t.propertyName,   color: '#5eacd3' },
+  { tag: t.tagName,        color: '#e06c75' },
+  { tag: t.attributeName,  color: '#d4a76a' },
+  { tag: t.attributeValue, color: '#5faf87' },
 ]);
 
-// ─── Gruvbox CodeMirror theme ─────────────────────────────────────────────────
+// ─── Default theme CodeMirror theme ──────────────────────────────────────────
 
 const gruvboxTheme = EditorView.theme(
   {
     '&': {
       height: '100%',
-      backgroundColor: GRUVBOX_DARK.colors.bg,
-      color: GRUVBOX_DARK.colors.fg,
+      backgroundColor: DEFAULT.colors.bg,
+      color: DEFAULT.colors.fg,
       fontFamily: "'JetBrains Mono', 'Symbols Nerd Font', monospace",
       fontSize: '13px',
     },
     '.cm-content': {
-      caretColor: GRUVBOX_DARK.colors.cursor,
+      caretColor: DEFAULT.colors.cursor,
       padding: '4px 8px',
     },
     '.cm-cursor': {
-      borderLeftColor: GRUVBOX_DARK.colors.cursor,
+      borderLeftColor: DEFAULT.colors.cursor,
       borderLeftWidth: '2px',
     },
     '.cm-gutters': {
-      backgroundColor: GRUVBOX_DARK.colors.ansi[0],
-      color: GRUVBOX_DARK.colors.ansi[8],
-      borderRight: `1px solid ${GRUVBOX_DARK.colors.selection}`,
+      backgroundColor: DEFAULT.colors.ansi[0],
+      color: DEFAULT.colors.ansi[8],
+      borderRight: `1px solid ${DEFAULT.colors.selection}`,
     },
-    '.cm-activeLineGutter': { backgroundColor: '#3c3836' },
-    '.cm-activeLine':       { backgroundColor: '#3c3836' },
+    '.cm-activeLineGutter': { backgroundColor: DEFAULT.colors.selection },
+    '.cm-activeLine':       { backgroundColor: DEFAULT.colors.selection },
     '.cm-scroller':         { overflow: 'auto' },
-    '.cm-vim-panel':        { background: '#1d2021', color: '#ebdbb2', padding: '0 8px', fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', minHeight: '1.4em', borderTop: '1px solid #504945' },
-    '.cm-vim-panel input':  { background: 'transparent', color: '#ebdbb2', fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', outline: 'none', border: 'none', width: '100%' },
+    '.cm-vim-panel':        { background: DEFAULT.colors.bg, color: DEFAULT.colors.fg, padding: '0 8px', fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', minHeight: '1.4em', borderTop: `1px solid ${DEFAULT.colors.selection}` },
+    '.cm-vim-panel input':  { background: 'transparent', color: DEFAULT.colors.fg, fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', outline: 'none', border: 'none', width: '100%' },
   },
   { dark: true },
 );
@@ -96,11 +96,11 @@ const gruvboxTheme = EditorView.theme(
 // `background-color: transparent !important` on ::selection. EditorView.theme()
 // loses that specificity war; a <style> tag added to <head> wins it.
 (function injectSelectionStyle() {
-  if (document.getElementById('cm-gruvbox-selection')) return;
+  if (document.getElementById('cm-selection-style')) return;
   const s = document.createElement('style');
-  s.id = 'cm-gruvbox-selection';
-  s.textContent = `.cm-selectionBackground { background-color: #665c54 !important; }
-.cm-focused .cm-selectionBackground { background-color: #665c54 !important; }`;
+  s.id = 'cm-selection-style';
+  s.textContent = `.cm-selectionBackground { background-color: ${DEFAULT.colors.selection} !important; }
+.cm-focused .cm-selectionBackground { background-color: ${DEFAULT.colors.selection} !important; }`;
   document.head.appendChild(s);
 })();
 

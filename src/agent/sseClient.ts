@@ -40,7 +40,7 @@ const ANSI_DIM    = '\x1b[2m';
 const ANSI_ITALIC = '\x1b[3m';
 const ANSI_RESET  = '\x1b[0m';
 const ANSI_BOLD   = '\x1b[1m';
-const ANSI_CYAN   = '\x1b[38;5;108m'; // gruvbox aqua — user prompt color
+const ANSI_CYAN   = '\x1b[96m'; // bright-cyan — user prompt color
 
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 

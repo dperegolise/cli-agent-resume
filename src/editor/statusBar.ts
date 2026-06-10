@@ -25,11 +25,11 @@ const CSS = `
   align-items: center;
   height: 24px;
   padding: 0 0;
-  background: var(--bg-main, #1d2021);
+  background: var(--bg-main, #1a1c1e);
   border-top: 1px solid var(--tmux-green, #44ff88);
   font-family: 'JetBrains Mono', 'Symbols Nerd Font', monospace;
   font-size: 11px;
-  color: var(--fg-main, #ebdbb2);
+  color: var(--fg-main, #c8ccd4);
   overflow: hidden;
   flex-shrink: 0;
   transition: background 0.15s ease;
@@ -37,7 +37,7 @@ const CSS = `
 }
 
 .powerline-bar.loading {
-  background: var(--ansi-8, #928374);
+  background: var(--ansi-8, #3d4351);
 }
 
 .powerline-segment {
@@ -58,19 +58,19 @@ const CSS = `
 }
 
 .powerline-mode[data-mode="NORMAL"] {
-  background: #b8bb26;
-  color: #282828;
+  background: #5faf87;
+  color: #1a1c1e;
 }
 
 .powerline-mode[data-mode="INSERT"] {
-  background: #fabd2f;
-  color: #282828;
+  background: #5eacd3;
+  color: #1a1c1e;
   animation: insert-flash 0.5s ease-out;
 }
 
 .powerline-mode[data-mode="VISUAL"] {
-  background: #83a598;
-  color: #282828;
+  background: #9b84c2;
+  color: #1a1c1e;
 }
 
 @keyframes insert-flash {
@@ -90,16 +90,16 @@ const CSS = `
 
 /* Right-side sep: color matches the mode pill */
 .powerline-sep-mode-normal {
-  color: #b8bb26;
-  background: var(--bg-main, #1d2021);
+  color: #5faf87;
+  background: var(--bg-main, #1a1c1e);
 }
 .powerline-sep-mode-insert {
-  color: #fabd2f;
-  background: var(--bg-main, #1d2021);
+  color: #5eacd3;
+  background: var(--bg-main, #1a1c1e);
 }
 .powerline-sep-mode-visual {
-  color: #83a598;
-  background: var(--bg-main, #1d2021);
+  color: #9b84c2;
+  background: var(--bg-main, #1a1c1e);
 }
 
 .powerline-filepath {
@@ -108,26 +108,26 @@ const CSS = `
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 300px;
-  color: var(--fg-main, #ebdbb2);
+  color: var(--fg-main, #c8ccd4);
   font-size: 11px;
 }
 
 .powerline-ro {
   padding: 0 4px;
-  color: #d65d0e;
+  color: #e06c75;
   font-weight: bold;
   font-size: 10px;
 }
 
 .powerline-filetype {
   padding: 0 6px;
-  color: #8ec07c;
+  color: #4dbdcb;
   font-size: 10px;
 }
 
 .powerline-sep-right-accent {
-  color: var(--ansi-8, #928374);
-  background: var(--bg-main, #1d2021);
+  color: var(--ansi-8, #3d4351);
+  background: var(--bg-main, #1a1c1e);
   height: 100%;
   display: inline-flex;
   align-items: center;
@@ -136,13 +136,13 @@ const CSS = `
 
 .powerline-linecol {
   padding: 0 6px;
-  color: var(--fg-main, #ebdbb2);
+  color: var(--fg-main, #c8ccd4);
   font-size: 11px;
 }
 
 .powerline-scrollpct {
   padding: 0 4px;
-  color: var(--ansi-8, #928374);
+  color: var(--ansi-8, #3d4351);
   font-size: 10px;
 }
 
@@ -151,7 +151,7 @@ const CSS = `
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #504945;
+  color: #3d4351;
   font-style: italic;
   font-size: 10px;
 }

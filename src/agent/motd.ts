@@ -26,18 +26,18 @@ const R  = '\x1b[0m';
 const B  = '\x1b[1m';
 const D  = '\x1b[2m';
 
-const G4 = '\x1b[38;5;99m';    // purple
-const G6 = '\x1b[38;5;141m';   // bright purple
-const G7 = '\x1b[38;5;177m';   // lavender
+const G4 = '\x1b[94m';    // bright-blue (accent)
+const G6 = '\x1b[96m';    // bright-cyan
+const G7 = '\x1b[97m';    // bright-white
 
-const AQ = '\x1b[38;5;60m';    // dim slate-blue (borders)
-const YL = '\x1b[38;5;214m';   // gruvbox orange (keys)
-const WH = '\x1b[38;5;223m';   // gruvbox fg light
-const GR = '\x1b[38;5;246m';   // mid-gray
-const RD = '\x1b[38;5;167m';   // gruvbox red
-const AM = '\x1b[38;5;214m';   // amber
-const GN = '\x1b[38;5;142m';   // gruvbox green (icon accent)
-const CY = '\x1b[38;5;108m';   // gruvbox aqua
+const AQ = '\x1b[90m';    // bright-black (dim borders)
+const YL = '\x1b[93m';    // bright-yellow (keys)
+const WH = '\x1b[97m';    // bright-white (fg light)
+const GR = '\x1b[90m';    // bright-black (mid-gray)
+const RD = '\x1b[91m';    // bright-red
+const AM = '\x1b[93m';    // bright-yellow (amber)
+const GN = '\x1b[92m';    // bright-green
+const CY = '\x1b[96m';    // bright-cyan
 
 // ─── MOTD ─────────────────────────────────────────────────────────────────────
 
@@ -93,4 +93,4 @@ export function printMOTD(terminal: AgentTerminal, _sseClient: SSEClient): void 
 }
 
 // Suppress unused — kept for palette reference
-void [B, D, AM];
+void [B, D, AM, RD];

@@ -5,22 +5,22 @@
  * No external dependencies.
  */
 
-// ─── Gruvbox palette (matches the vim editor theme) ──────────────────────────
+// ─── Default theme palette ────────────────────────────────────────────────────
 
 const R  = '\x1b[0m';
 const B  = '\x1b[1m';
 const DIM = '\x1b[2m';
 const IT = '\x1b[3m';
-const H1 = '\x1b[38;5;167m';    // gruvbox red
-const H2 = '\x1b[38;5;214m';    // gruvbox orange
-const H3 = '\x1b[38;5;142m';    // gruvbox yellow-green
-const H4 = '\x1b[38;5;108m';    // gruvbox aqua
-const CODE_FG = '\x1b[38;5;108m';
-const CODE_BG = '\x1b[48;5;237m';
-const BLOCK_BORDER = '\x1b[38;5;243m';
-const QUOTE_FG = '\x1b[38;5;243m';
-const BULLET = '\x1b[38;5;214m';
-const HR_COLOR = '\x1b[38;5;239m';
+const H1 = '\x1b[91m';   // bright-red
+const H2 = '\x1b[93m';   // bright-yellow
+const H3 = '\x1b[92m';   // bright-green
+const H4 = '\x1b[96m';   // bright-cyan
+const CODE_FG = '\x1b[96m';    // bright-cyan
+const CODE_BG = '\x1b[48;5;235m';  // dark bg tint (near-neutral, works on any dark theme)
+const BLOCK_BORDER = '\x1b[90m';   // bright-black (dim gray)
+const QUOTE_FG = '\x1b[90m';       // bright-black
+const BULLET = '\x1b[93m';         // bright-yellow
+const HR_COLOR = '\x1b[90m';       // bright-black
 
 // ─── OSC 8 hyperlink helper ───────────────────────────────────────────────────
 
@@ -64,8 +64,8 @@ function applyInline(text: string, validPaths?: Set<string>): string {
 
 // ─── Table rendering ─────────────────────────────────────────────────────────
 
-const TABLE_HEADER = '\x1b[38;5;214m';
-const TABLE_BORDER = '\x1b[38;5;239m';
+const TABLE_HEADER = '\x1b[93m';   // bright-yellow
+const TABLE_BORDER = '\x1b[90m';   // bright-black
 const TABLE_MAX_WIDTH = 46;
 
 function truncate(s: string, max: number): string {
