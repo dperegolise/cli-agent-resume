@@ -1,8 +1,7 @@
 # cli-agent-resume
 
-> **This repo doubles as my live resume.** The `www/` content is real — actual experience, projects, and contact details for Daniel Peregolise. If you're here from a job application or just exploring, you're in the right place.
->
-> **Want your own?** Fork it, replace everything under `www/` with your content, and deploy. The shell, agent, editor, and file explorer are all yours to keep.
+> See ![www/index.md](www/index.md) for my resume.
+> Feel free to clone and reuse.
 
 A CLI-aesthetic browser-based portfolio with a tmux-style panel layout: an AI agent shell on the left (full height), a NERDTree file explorer (top) over a CodeMirror Vim editor (bottom) on the right, and a collapsible CLI terminal along the bottom. Powered by a FastAPI/LangChain backend with a model cascade and a co-located routr proxy. Ships with a switchable theme system (`theme` command) — the default is a custom desaturated-steel palette, with Gruvbox, Nord, Tokyo Night, Dracula, and others selectable.
 
