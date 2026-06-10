@@ -27,7 +27,7 @@ const gruvboxHighlight = HighlightStyle.define([
   { tag: t.heading,        color: '#73c99d', fontWeight: 'bold' },
   // Emphasis / strong
   { tag: t.emphasis,       color: '#9b84c2', fontStyle: 'italic' },
-  { tag: t.strong,         color: '#e0bc7a', fontWeight: 'bold' },
+  { tag: t.strong,         color: '#cfbd9c', fontWeight: 'bold' },
   // Links
   { tag: t.link,           color: '#63cddb', textDecoration: 'underline' },
   { tag: t.url,            color: '#63cddb' },
@@ -342,6 +342,8 @@ export class VimEditor {
     if (!this._previewEl) return;
 
     if (normal) {
+      // Re-render from the live editor content so edits are reflected immediately
+      if (this.view) this._renderPreview(this.view.state.doc.toString());
       this._syncPreviewScroll(this._getEditorScrollPct());
       this._previewEl.style.display = 'block';
       if (this._hintEl) this._hintEl.style.display = 'flex';
