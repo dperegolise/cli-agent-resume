@@ -4,7 +4,7 @@
 >
 > **Want your own?** Fork it, replace everything under `www/` with your content, and deploy. The shell, agent, editor, and file explorer are all yours to keep.
 
-A CLI-aesthetic browser-based portfolio. Three tmux-green-divided panels: an AI agent shell (left), a NERDTree file explorer + CodeMirror Vim editor (right), and a collapsible CLI terminal (bottom). Powered by a FastAPI/LangChain backend with a model cascade and a co-located routr proxy.
+A CLI-aesthetic browser-based portfolio with a tmux-style panel layout: an AI agent shell on the left (full height), a NERDTree file explorer (top) over a CodeMirror Vim editor (bottom) on the right, and a collapsible CLI terminal along the bottom. Powered by a FastAPI/LangChain backend with a model cascade and a co-located routr proxy. Ships with a switchable theme system (`theme` command) — the default is a custom desaturated-steel palette, with Gruvbox, Nord, Tokyo Night, Dracula, and others selectable.
 
 ---
 
@@ -117,7 +117,7 @@ source .venv/bin/activate
 pytest backend/tests/ -v
 ```
 
-85 tests, all green (unit + adversarial).
+86 tests, all green (unit + adversarial).
 
 ### Routr tests
 
@@ -208,7 +208,7 @@ src/
   layout/       CSS grid layout + mobile responsive
   routr/        completions-only proxy (Python FastAPI)
   bus.ts        cross-panel event bus (FOCUS_FILE, THEME_CHANGE)
-  theme.ts      Gruvbox Dark color system + theme manager
+  theme.ts      multi-theme color system (default + Gruvbox, Nord, etc.) + theme manager
   types.ts      shared TypeScript interfaces
   manifest.ts   portfolio manifest loader + path validation
 
@@ -235,7 +235,7 @@ www/            portfolio content (.md files, served as static + indexed)
 
 **Model cascade**: every agent request tries OpenRouter first (free-tier models), falls back to HuggingFace, then falls back to routr. If all three fail, a structured SSE `error` event is returned. routr is a completions-only proxy — `tools` and `tool_choice` fields are **never** forwarded to it (hard-asserted with `assert tools is None` before the HTTP call).
 
-**Cross-panel events**: the `EventBus` (`src/bus.ts`) connects the three panels. `FOCUS_FILE` events from the agent shell or CLI drawer cause the NERDTree explorer and Vim editor to navigate to and display the file. `THEME_CHANGE` events from the CLI `theme` command update all panels simultaneously.
+**Cross-panel events**: the `EventBus` (`src/bus.ts`) connects the panels. `FOCUS_FILE` events from the agent shell or CLI drawer cause the NERDTree explorer and Vim editor to navigate to and display the file. `THEME_CHANGE` events from the CLI `theme` command update all panels simultaneously across all bundled themes.
 
 **Rate limiting**: 20 requests per IP per 60-second sliding window. On breach, the IP is banned for 24 hours. The ban timestamp is returned in the `X-Client-Banned-Until` response header and stored in `localStorage` so the browser shows a friendly message without hitting the server again.
 
