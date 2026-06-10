@@ -1,4 +1,4 @@
-# claude-teamwork
+# justwispr
 
 **GitHub**: (link TBD)
 

@@ -1,4 +1,4 @@
-# claude-teamwork
+# tessra-sheets
 
 **GitHub**: (link TBD)
 

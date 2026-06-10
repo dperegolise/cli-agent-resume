@@ -8,3 +8,6 @@ __pycache__/
 .env
 .env.local
 .playwright-cli/
+
+# Resume source document (not published)
+Daniel_Peregolise_Resume.pdf

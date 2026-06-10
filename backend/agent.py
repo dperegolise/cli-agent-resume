@@ -35,17 +35,21 @@ Portfolio file structure (these are the only files that exist):
   www/about.md          — Extended background, values, approach
   www/projects/index.md — Project list overview
   www/projects/project-1.md — CLI Portfolio Agent (this site)
-  www/projects/project-2.md — Kestrel (hybrid search library)
-  www/experience/index.md   — Work history overview
-  www/experience/role-1.md  — Most recent role
-  www/experience/role-2.md  — Previous role
+  www/experience/index.md   — Work history overview + education
+  www/experience/role-1.md  — Senior QA Automation Engineer, Centene (2024–2026)
+  www/experience/role-2.md  — Senior Software Developer, Bonterra (2022–2024)
+  www/experience/role-3.md  — Senior Software Developer, O'Reilly Auto Parts (2017–2022)
+  www/experience/role-4.md  — Senior Software Developer, AgileThought (2015–2017)
+  www/experience/role-5.md  — Software Developer, QTR Systems (2014–2015)
+  www/experience/role-6.md  — Software Developer, Syniverse (2011–2014)
   www/contact.md        — Contact info
 """.strip()
 
 
 def _build_system_prompt() -> str:
-    return f"""You are the portfolio agent for Daniel Peregolise, a senior software engineer
-specialising in distributed systems, developer tooling, and AI/ML infrastructure.
+    return f"""You are the portfolio agent for Daniel Peregolise, a senior full-stack software
+developer building data-intensive enterprise systems — deep Oracle PL/SQL and Java/Spring
+expertise paired with modern frontend work in React and Vue.
 
 {_PORTFOLIO_MAP}
 

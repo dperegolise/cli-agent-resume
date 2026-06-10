@@ -6,26 +6,29 @@ I'm selectively open to interesting conversations — not recruiting calls, but 
 
 ## Preferred contact
 
-**Email**: [danielperegolise@gmail.com](mailto:danielperegolise@gmail.com)
+**Email**: daniel@peregolise.com
 
-Email is best for anything substantive: project proposals, technical discussions, potential
-collaborations. I respond to well-framed messages, usually within a few days.
+Email is best for anything substantive: project proposals, technical discussions,
+potential collaborations. I respond to well-framed messages, usually within a few days.
 
 ---
 
 ## Other channels
 
-**GitHub**: [github.com/danielperegolise](https://github.com/danielperegolise)
+**GitHub**: https://github.com/dperegolise
 — open issues and pull requests on public repos are welcome.
 
-**LinkedIn**: [linkedin.com/in/danielperegolise](https://linkedin.com/in/danielperegolise)
+**LinkedIn**: https://linkedin.com/in/daniel-peregolise
 — I keep this updated but don't check it frequently. Email is faster.
+
+**Website**: https://peregolise.com
 
 ---
 
 ## What I'm interested in hearing about
 
-- Roles involving developer tooling, platform engineering, or AI/LLM infrastructure
+- Roles involving full-stack enterprise development, data-intensive systems, or platform
+  modernization
 - Open source projects that need a systems-minded contributor
 - Talks, writing, or technical review requests
 - Anything genuinely weird and technically challenging

@@ -1,23 +1,26 @@
 ---
 title: Daniel Peregolise
 section: home
-description: Senior Software Engineer — distributed systems, developer tooling, and platform infrastructure.
+description: Senior Full-Stack Software Developer
 ---
 
 # Daniel Peregolise
 
-**Senior Software Engineer** — distributed systems, developer tooling, and platform infrastructure.
+**Senior Full-Stack Software Developer** — Oracle PL/SQL and Java/Spring, paired with
+modern frontend work in React and Vue.
 
 ---
 
-Building software that other engineers depend on, from CLI tools and internal platforms to
-production-grade APIs at scale. I care about correctness, observability, and making the
-next engineer's job easier than mine was.
+About fifteen years building data-intensive enterprise applications across healthcare,
+nonprofit, retail, telecom, and consulting. Leading modernization efforts, migrating
+multi-billion-row datasets, automating mission-critical workflows, and guiding Agile
+teams from concept to production.
 
 **Links**:
-- GitHub: https://github.com/danielperegolise
-- LinkedIn: https://linkedin.com/in/danielperegolise
-- Email: danielperegolise@gmail.com
+- GitHub: https://github.com/dperegolise
+- LinkedIn: https://linkedin.com/in/daniel-peregolise
+- Website: https://peregolise.com
+- Email: daniel@peregolise.com
 
 ---
 

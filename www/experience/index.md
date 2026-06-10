@@ -1,30 +1,41 @@
 # Experience
 
-Ten years of professional software engineering across early startups, growth-stage companies,
-and platform/infrastructure roles.
+About fifteen years of professional software development across healthcare, nonprofit,
+retail, telecom, and consulting — data-intensive enterprise systems, end to end.
 
 ---
 
 ## Career arc
 
-I started as a generalist — full stack, whatever needed doing — and gradually specialized toward
-platform infrastructure and developer experience. The through-line has been systems that other
-engineers rely on: build pipelines, deployment platforms, internal APIs, observability
-infrastructure, and increasingly, ML tooling.
+I started self-taught: as a number portability analyst at Syniverse, I learned PHP on the
+job and automated an estimated 12% of the service center's manual workload, which turned
+into a developer role. From there: big-data analytics for the major U.S. mobile carriers,
+consulting engagements, and a series of senior full-stack positions in retail, nonprofit,
+and healthcare.
 
-The last few years have been spent at the intersection of LLM tooling and production engineering:
-building the scaffolding around model inference, evaluation pipelines, and agent frameworks that
-can be trusted in production.
+The through-line has been enterprise modernization — legacy replacement, large-scale data
+migration and performance optimization, and automation of mission-critical workflows.
+Along the way I've acted as technical lead and Scrum Master across multiple teams; agile
+sprint planning, technical mentoring, and production incident response are as much a part
+of the job as the code.
 
 ---
 
 ## Roles (most recent first)
 
-- [Staff Engineer, Inference Platform — Helix AI (2023–present)](./role-1.md)
-- [Senior Engineer, Developer Platform — Carto Systems (2020–2023)](./role-2.md)
+- Centene (2024–2026) — experience/role-1.md
+- Bonterra (2022–2024) — experience/role-2.md
+- O'Reilly Auto Parts (2017–2022) — experience/role-3.md
+- AgileThought (2015–2017) — experience/role-4.md
+- QTR Systems (2014–2015) — experience/role-5.md
+- Syniverse (2011–2014) — experience/role-6.md
 
 ---
 
 ## Education
 
-B.S. Computer Science, University of Illinois at Urbana-Champaign (2014)
+**B.S. Computer Science** — University of South Florida (in progress)
+
+**A.A., transfer track** — Hillsborough Community College (36 credits completed)
+
+**Honors**: Phi Theta Kappa · Psi Beta · National Society of Collegiate Scholars

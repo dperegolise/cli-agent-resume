@@ -48,10 +48,10 @@ export function printMOTD(terminal: AgentTerminal, _sseClient: SSEClient): void 
   const ln = (text = ''): void => terminal.writeln(text);
 
   // ── Header: colored tagline ──────────────────────────────────────────────
-  // Tagline visible width: "daniel peregolise  ·  ai/ml  ·  systems" = 40 chars
+  // Tagline visible width: "daniel peregolise  ·  full-stack  ·  enterprise" = 47 chars
   ln();
-  ln(`  ${B}${YL}daniel peregolise${R}  ${D}·${R}  ${CY}ai/ml${R}  ${D}·${R}  ${GN}systems${R}`);
-  ln(`   ${AQ}${'─'.repeat(36)}${R}`);
+  ln(`  ${B}${YL}daniel peregolise${R}  ${D}·${R}  ${CY}full-stack${R}  ${D}·${R}  ${GN}enterprise${R}`);
+  ln(`   ${AQ}${'─'.repeat(44)}${R}`);
   ln();
 
   // ── Codex-style ASCII box ────────────────────────────────────────────────

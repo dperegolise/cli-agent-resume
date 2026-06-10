@@ -3,7 +3,7 @@
 A browser-based developer portfolio that looks and feels like a real terminal. You're
 looking at it right now.
 
-**GitHub**: [github.com/danielperegolise/cli-agent-resume](https://github.com/danielperegolise/cli-agent-resume)
+**GitHub**: https://github.com/dperegolise/cli-agent-resume
 
 ---
 
@@ -31,9 +31,9 @@ I wanted a portfolio that felt like dropping into a developer's actual machine r
 reading a Squarespace page. A terminal aesthetic because that's where I live. An AI agent
 because it's a better interface than a nav bar for exploring unstructured content.
 
-The secondary goal was a real exercise in building with xterm.js, CodeMirror 6, and LangChain
-together — each of which has interesting API surfaces that aren't well-documented in
-combination.
+The secondary goal was a real exercise in building with xterm.js, CodeMirror 6, and
+LangChain together — each of which has interesting API surfaces that aren't
+well-documented in combination.
 
 ---
 
@@ -43,8 +43,8 @@ combination.
 integrates cleanly without React lifecycle complexity.
 
 **Static manifest at build time**: A Vite plugin scans `www/` and emits `manifest.json` as
-a static asset. The frontend fetches it once and caches it; the backend reads it at startup
-for the search index. No runtime filesystem access on either end.
+a static asset. The frontend fetches it once and caches it; the backend reads it at
+startup for the search index. No runtime filesystem access on either end.
 
 **Model cascade**: The agent backend tries OpenRouter → HuggingFace → a local completions
 proxy in order. The local proxy (`src/routr`) is text-only and never receives tool

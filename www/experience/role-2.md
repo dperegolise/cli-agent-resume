@@ -1,47 +1,32 @@
-# Senior Engineer, Developer Platform — Carto Systems
+# Bonterra
+Senior Software Developer
 
-**2020–2023** | New York, NY (hybrid)
+**Aug 2022 – Mar 2024** | Remote
 
-Carto Systems builds geospatial data infrastructure — cloud-native pipelines for ingesting,
-transforming, and serving large-scale location datasets to enterprise GIS and analytics customers.
-I joined as the fourth engineer on the developer platform team and left as one of the leads.
+Bonterra builds software for nonprofit social-good workflows. I maintained a
+grant-management platform across the full stack — PL/SQL data layer, Java services, and a
+React frontend.
 
 ---
 
 ## Responsibilities
 
-**Internal developer platform (IDP)**: Led the build-out of Carto's internal platform:
-self-service service provisioning, standardized CI/CD pipelines (GitHub Actions + custom
-orchestration), secrets management, and a Backstage-based developer portal. Reduced time-to-first
-deploy for new services from ~2 weeks to ~4 hours.
+**Core business logic**: Led the rewrite of the external gift controller and core business
+logic in Java.
 
-**Data pipeline infrastructure**: Designed and owned the Rust-based tile-generation pipeline
-that converts raw geospatial datasets (up to 200GB shapefiles) into Mapbox Vector Tiles for
-CDN delivery. Replaced a brittle Python predecessor that required manual restarts 3-4 times
-per week.
+**Gift redirection & batching**: Built a client-facing gift-redirection system — React
+frontend plus a nightly PL/SQL job for redirecting donations between nonprofits — and the
+gift-batching system, with multi-currency support and granular grant-request status
+tracking.
 
-**Observability**: Built Carto's observability layer from scratch — structured logging
-conventions, distributed tracing with OpenTelemetry, and a Grafana dashboard library shared
-across 40+ services. Reduced mean time to root cause for production incidents from 45 minutes
-to ~8 minutes.
+**Production support**: Resolved critical after-hours P1 outages, including manually
+driving reissues and redirections during a major partner (PNC) outage; handled daily
+production-support tickets from external clients.
 
-**On-call & reliability**: Owned the on-call rotation for platform services; ran blameless
-post-mortems; drove the SLO framework adoption that gave product teams concrete reliability
-targets for the first time.
-
----
-
-## Impact
-
-- Tile generation pipeline: 12× throughput improvement over predecessor; zero manual
-  restarts in 18 months after launch
-- Developer portal: 94% adoption among engineering team within 6 months; reduced
-  "how do I deploy this" questions in Slack by ~70% (measured via support ticket tracking)
-- Led technical hiring for 4 senior platform engineer roles; conducted 60+ technical interviews
+**Process**: Authored the team's agile design methodology and led its adoption.
 
 ---
 
 ## Stack
 
-Rust, Python, TypeScript, PostgreSQL, PostGIS, Redis, Kafka, Kubernetes, Terraform,
-OpenTelemetry, Grafana, GitHub Actions
+Oracle PL/SQL, Java, React

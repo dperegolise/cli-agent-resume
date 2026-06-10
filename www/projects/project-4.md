@@ -1,4 +1,4 @@
-# claude-teamwork
+# scraper-mcp
 
 **GitHub**: (link TBD)
 
