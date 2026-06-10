@@ -212,26 +212,26 @@ body {
   line-height: 1.3;
   font-weight: bold;
 }
-#md-preview h1 { color: #fb4934; font-size: 1.4em; border-bottom: 1px solid #3c3836; padding-bottom: 0.3em; }
-#md-preview h2 { color: #fabd2f; font-size: 1.2em; }
-#md-preview h3 { color: #b8bb26; font-size: 1.05em; }
-#md-preview h4, #md-preview h5, #md-preview h6 { color: #fe8019; font-size: 1em; }
+#md-preview h1 { color: #4dbdcb; font-size: 1.4em; border-bottom: 1px solid #2d3748; padding-bottom: 0.3em; }
+#md-preview h2 { color: #5eacd3; font-size: 1.2em; }
+#md-preview h3 { color: #5faf87; font-size: 1.05em; }
+#md-preview h4, #md-preview h5, #md-preview h6 { color: #5eacd3; font-size: 1em; }
 
 #md-preview p { margin: 0 0 0.8em; }
 
-#md-preview a { color: #83a598; text-decoration: underline; cursor: pointer; }
-#md-preview a:hover { color: #8ec07c; }
+#md-preview a { color: #4dbdcb; text-decoration: underline; cursor: pointer; }
+#md-preview a:hover { color: #63cddb; }
 
 #md-preview code {
-  background: #3c3836;
-  color: #8ec07c;
+  background: #2d3748;
+  color: #4dbdcb;
   padding: 0.1em 0.35em;
   border-radius: 3px;
   font-size: 0.9em;
 }
 #md-preview pre {
-  background: #3c3836;
-  border-left: 3px solid #504945;
+  background: #2d3748;
+  border-left: 3px solid #3d4351;
   padding: 10px 14px;
   overflow-x: auto;
   margin: 0.8em 0;
@@ -240,10 +240,10 @@ body {
 #md-preview pre code { background: none; padding: 0; }
 
 #md-preview blockquote {
-  border-left: 3px solid #504945;
+  border-left: 3px solid #3d4351;
   margin: 0.8em 0;
   padding: 0 12px;
-  color: #928374;
+  color: #9ca3af;
 }
 
 #md-preview ul, #md-preview ol {
@@ -254,12 +254,12 @@ body {
 
 #md-preview hr {
   border: none;
-  border-top: 1px solid #3c3836;
+  border-top: 1px solid #2d3748;
   margin: 1.2em 0;
 }
 
-#md-preview strong { color: #ebdbb2; font-weight: bold; }
-#md-preview em { color: #d3869b; font-style: italic; }
+#md-preview strong { color: #dde1e8; font-weight: bold; }
+#md-preview em { color: #9b84c2; font-style: italic; }
 
 #md-preview table {
   border-collapse: collapse;
@@ -267,11 +267,11 @@ body {
   width: 100%;
 }
 #md-preview th, #md-preview td {
-  border: 1px solid #504945;
+  border: 1px solid #3d4351;
   padding: 4px 10px;
   text-align: left;
 }
-#md-preview th { background: #3c3836; color: #fabd2f; }
+#md-preview th { background: #2d3748; color: #5eacd3; }
 
 /* ─── CodeMirror editor (fills available space) ───────────────────────────── */
 

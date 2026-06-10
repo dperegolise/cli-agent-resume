@@ -20,16 +20,16 @@ import type { FocusFileEvent } from '../types.js';
 // ─── Default theme syntax highlight style ────────────────────────────────────
 
 const gruvboxHighlight = HighlightStyle.define([
-  // Headings: red → yellow → green by level
-  { tag: t.heading1,       color: '#e06c75', fontWeight: 'bold' },
-  { tag: t.heading2,       color: '#d4a76a', fontWeight: 'bold' },
+  // Headings: teal → blue → green by level (all cool tones, matching the palette)
+  { tag: t.heading1,       color: '#4dbdcb', fontWeight: 'bold' },
+  { tag: t.heading2,       color: '#5eacd3', fontWeight: 'bold' },
   { tag: t.heading3,       color: '#5faf87', fontWeight: 'bold' },
-  { tag: t.heading,        color: '#d4a76a', fontWeight: 'bold' },
+  { tag: t.heading,        color: '#5eacd3', fontWeight: 'bold' },
   // Emphasis / strong
   { tag: t.emphasis,       color: '#9b84c2', fontStyle: 'italic' },
   { tag: t.strong,         color: '#dde1e8', fontWeight: 'bold' },
   // Links
-  { tag: t.link,           color: '#5eacd3', textDecoration: 'underline' },
+  { tag: t.link,           color: '#4dbdcb', textDecoration: 'underline' },
   { tag: t.url,            color: '#4dbdcb' },
   // Code
   { tag: t.monospace,      color: '#4dbdcb', fontFamily: "'JetBrains Mono', monospace" },

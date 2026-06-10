@@ -85,7 +85,7 @@ export function printMOTD(terminal: AgentTerminal, _sseClient: SSEClient): void 
   }
 
   ln();
-  ln(`  ${D}${RD}▸${R}${D}${GR} type anything to ask the agent${R}`);
+  ln(`  ${D}${RD}▸${R}  ${D} type anything to ask the agent${R}`);
   ln();
 
   terminal.write('agent> ');
