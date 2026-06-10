@@ -1,6 +1,10 @@
 # cli-agent-resume
 
-A CLI-aesthetic browser-based portfolio for Daniel Peregolise. Three tmux-green-divided panels: an AI agent shell (left), a NERDTree file explorer + CodeMirror Vim editor (right), and a collapsible CLI terminal (bottom). Powered by a FastAPI/LangChain backend with a model cascade and a co-located routr proxy.
+> **This repo doubles as my live resume.** The `www/` content is real — actual experience, projects, and contact details for Daniel Peregolise. If you're here from a job application or just exploring, you're in the right place.
+>
+> **Want your own?** Fork it, replace everything under `www/` with your content, and deploy. The shell, agent, editor, and file explorer are all yours to keep.
+
+A CLI-aesthetic browser-based portfolio. Three tmux-green-divided panels: an AI agent shell (left), a NERDTree file explorer + CodeMirror Vim editor (right), and a collapsible CLI terminal (bottom). Powered by a FastAPI/LangChain backend with a model cascade and a co-located routr proxy.
 
 ---
 
@@ -174,9 +178,9 @@ curl -N -X POST https://yourdomain.com/agent \
 ## Portfolio content (`www/`)
 
 The `www/` directory contains the Markdown files displayed in the Vim editor panel. The
-files committed here are **illustrative placeholder content** for Daniel Peregolise. If
-you are forking this project for your own portfolio, replace all files under `www/` with
-your own content before deploying. The structure expected by the manifest loader is:
+files committed here are Daniel Peregolise's actual portfolio content. If you are forking
+this project for your own use, replace everything under `www/` with your own content
+before deploying. The structure expected by the manifest loader is:
 
 ```
 www/

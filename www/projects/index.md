@@ -7,7 +7,7 @@ was interesting.
 
 ## Selected projects
 
-- CLI Portfolio Agent — projects/project-1.md
+- cli-portfolio-agent — projects/project-1.md
 - claude-teamwork — projects/project-2.md
 - devservr — projects/project-3.md
 - scraper-mcp — projects/project-4.md

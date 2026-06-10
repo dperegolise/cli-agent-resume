@@ -5,7 +5,7 @@ running many client projects on one machine. You compose work as flow-graphs;
 scope-bounded agents execute in isolated git worktrees; a unified memory fabric remembers
 your whole portfolio — with hard confidentiality walls between clients.
 
-**GitHub**: https://github.com/dperegolise/ovtr
+**Source**: private for now
 
 ---
 

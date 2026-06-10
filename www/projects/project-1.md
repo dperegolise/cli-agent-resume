@@ -1,4 +1,4 @@
-# CLI Portfolio Agent
+# cli-portfolio-agent
 
 A browser-based developer portfolio that looks and feels like a real terminal. You're
 looking at it right now.
