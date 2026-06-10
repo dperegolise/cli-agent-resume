@@ -1,0 +1,20 @@
+{
+  "recorded_at": "2026-06-10T15:16:57.816Z",
+  "event": "SessionStart-startup",
+  "top_level_keys": [
+    "session_id",
+    "transcript_path",
+    "cwd",
+    "hook_event_name",
+    "source",
+    "model"
+  ],
+  "payload": {
+    "session_id": "d3d570f0-297a-48b8-b31e-ac5df253006f",
+    "transcript_path": "/home/daniel/.claude/projects/-home-daniel-src-cli-agent-resume/d3d570f0-297a-48b8-b31e-ac5df253006f.jsonl",
+    "cwd": "/home/daniel/src/cli-agent-resume",
+    "hook_event_name": "SessionStart",
+    "source": "startup",
+    "model": "claude-opus-4-8"
+  }
+}

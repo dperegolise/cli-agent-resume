@@ -1,0 +1,107 @@
+{
+  "succession_index": 3,
+  "objective": "CLI-aesthetic browser portfolio site with agent shell, Vim editor, file explorer, CLI drawer, FastAPI backend, routr proxy, and VPS deployment",
+  "milestones": [
+    {
+      "id": "m0-strategy",
+      "title": "Strategy document",
+      "status": "done",
+      "owner": "explorer"
+    },
+    {
+      "id": "m1-scaffold",
+      "title": "Project scaffold & theme system",
+      "status": "done",
+      "owner": "worker-m1"
+    },
+    {
+      "id": "m2-layout",
+      "title": "Responsive layout with drawer",
+      "status": "done",
+      "owner": "worker-m2"
+    },
+    {
+      "id": "m3-agent-shell",
+      "title": "Agent shell with xterm & SSE",
+      "status": "done",
+      "owner": "worker-m3-fix"
+    },
+    {
+      "id": "m4-vim-panel",
+      "title": "Vim editor with CM6 & theming",
+      "status": "done",
+      "owner": "worker-m4"
+    },
+    {
+      "id": "m5-cli-drawer",
+      "title": "CLI drawer & terminal",
+      "status": "done",
+      "owner": "worker-m5-fix"
+    },
+    {
+      "id": "m6-backend",
+      "title": "FastAPI backend with LangChain",
+      "status": "done",
+      "owner": "worker-m6"
+    },
+    {
+      "id": "m7-routr",
+      "title": "HTTP routing proxy",
+      "status": "done",
+      "owner": "worker-m7"
+    },
+    {
+      "id": "m8-deploy",
+      "title": "Systemd & VPS deploy config",
+      "status": "done",
+      "owner": "worker-m8"
+    }
+  ],
+  "completed": [
+    "m0-strategy",
+    "m1-scaffold",
+    "m2-layout",
+    "m3-agent-shell",
+    "m4-vim-panel",
+    "m5-cli-drawer",
+    "m6-backend",
+    "m7-routr",
+    "m8-deploy"
+  ],
+  "pending_decisions": [
+    {
+      "q": "Should backend be reverted to use mocks instead of real API calls?",
+      "context": "User's last prompt suggests reverting to portfolio-mode (mocked, no real LangChain), work only against cached copies and browser state",
+      "options": [
+        "Revert backend to mocks",
+        "Keep real backend",
+        "Hybrid (keep proxy but mock agent responses)"
+      ]
+    }
+  ],
+  "dispatched_teammates": [
+    {
+      "role": "orchestrator",
+      "task": "Coordinate all milestones",
+      "report": ".teamwork/state/run-state.json"
+    },
+    {
+      "role": "auditor",
+      "task": "Authenticity audit on all milestones",
+      "report": ".teamwork/reports/audit-PASS"
+    },
+    {
+      "role": "integrator",
+      "task": "Merge all 8 branches into master",
+      "report": ".teamwork/reports/integrate-all.md"
+    }
+  ],
+  "open_questions": [
+    "Does user want real LangChain backend or fully mocked portfolio mode?",
+    "Should agent responses be served from cache or live API?",
+    "What exactly should be mocked for portfolio use?"
+  ],
+  "next_action": "All 9 milestones complete and merged to master (ba25afd HEAD). Run `npm install && npm run dev` to verify in browser. Clarify with user whether backend should remain with real LangChain API calls or revert to mocked portfolio mode. If mocking needed, dispatch worker to implement mock-agent-responses in backend/* and frontend/*. Otherwise, project is production-ready per final-summary.md.",
+  "generated_at": "2026-06-08T23:41:06.996Z",
+  "session_id": "8c54c5ff-9876-4fe6-a972-e29afd3db952"
+}

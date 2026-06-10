@@ -11,7 +11,6 @@ __pycache__/
 # Agentic / tooling state — not for external contributors
 .playwright-cli/
 .overtr.json
-.teamwork/
 .claude/
 restyle/
 

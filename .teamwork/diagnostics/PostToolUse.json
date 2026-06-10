@@ -1,0 +1,41 @@
+{
+  "recorded_at": "2026-06-08T19:21:57.714Z",
+  "event": "PostToolUse",
+  "top_level_keys": [
+    "session_id",
+    "transcript_path",
+    "cwd",
+    "permission_mode",
+    "effort",
+    "hook_event_name",
+    "tool_name",
+    "tool_input",
+    "tool_response",
+    "tool_use_id",
+    "duration_ms"
+  ],
+  "payload": {
+    "session_id": "9ffbacb8-ba4d-4b0c-896b-79426e0390d8",
+    "transcript_path": "/home/daniel/.claude/projects/-home-daniel-src-cli-agent-resume/9ffbacb8-ba4d-4b0c-896b-79426e0390d8.jsonl",
+    "cwd": "/home/daniel/src/cli-agent-resume",
+    "permission_mode": "bypassPermissions",
+    "effort": {
+      "level": "high"
+    },
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "set -e\nSRC=\"/home/daniel/src/claude-teamwork/teamwork/CLAUDE.md\"\nDEST=\".claude/teamwork-contract.md\"\nMEM=\".claude/CLAUDE.md\"\nIMPORT_LINE=\"@teamwork-contract.md\"\n\nif [ ! -f \"$SRC\" ]; then\n  echo \"ERROR: contract not found at $SRC\"\n  exit 1\nfi\n\nmkdir -p .claude\n\ncp \"$SRC\" \"$DEST\"\necho \"wrote $DEST\"\n\nif [ ! -f \"$MEM\" ]; then\n  printf '# %s — teamwork\\n\\n%s\\n' \"$(basename \"$PWD\")\" \"$IMPORT_LINE\" > \"$MEM\"\n  echo \"created $MEM with import\"\nelif grep -qF \"$IMPORT_LINE\" \"$MEM\"; then\n  echo \"$MEM already imports the contract — no change\"\nelse\n  printf '\\n%s\\n' \"$IMPORT_LINE\" >> \"$MEM\"\n  echo \"appended import to existing $MEM\"\nfi\n\necho \"note: your root CLAUDE.md was not touched\"",
+      "description": "Copy contract and wire import into .claude/CLAUDE.md"
+    },
+    "tool_response": {
+      "stdout": "wrote .claude/teamwork-contract.md\ncreated .claude/CLAUDE.md with import\nnote: your root CLAUDE.md was not touched",
+      "stderr": "",
+      "interrupted": false,
+      "isImage": false,
+      "noOutputExpected": false
+    },
+    "tool_use_id": "toolu_01N1672Q4NCkJzJ6ypv5fUTm",
+    "duration_ms": 303
+  }
+}

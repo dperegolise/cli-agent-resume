@@ -1,0 +1,20 @@
+{
+  "recorded_at": "2026-06-10T08:59:08.983Z",
+  "event": "PreCompact-auto",
+  "top_level_keys": [
+    "session_id",
+    "transcript_path",
+    "cwd",
+    "hook_event_name",
+    "trigger",
+    "custom_instructions"
+  ],
+  "payload": {
+    "session_id": "8c54c5ff-9876-4fe6-a972-e29afd3db952",
+    "transcript_path": "/home/daniel/.claude/projects/-home-daniel-src-cli-agent-resume/8c54c5ff-9876-4fe6-a972-e29afd3db952.jsonl",
+    "cwd": "/home/daniel/src/cli-agent-resume",
+    "hook_event_name": "PreCompact",
+    "trigger": "auto",
+    "custom_instructions": null
+  }
+}
