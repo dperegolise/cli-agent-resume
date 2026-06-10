@@ -48,6 +48,9 @@ export interface ThemeColors {
   /** Accent color used for tmux-style dividers and UI highlights.
    *  Varies per theme so dividers match the active palette. */
   accentColor: string;
+  /** Optional pane-divider color. When set, dividers use this instead of the
+   *  accent (the default theme wants near-invisible 1px separators). */
+  dividerColor?: string;
 }
 
 export interface ThemeConfig {

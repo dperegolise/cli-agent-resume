@@ -11,12 +11,14 @@ const R  = '\x1b[0m';
 const B  = '\x1b[1m';
 const DIM = '\x1b[2m';
 const IT = '\x1b[3m';
-const H1 = '\x1b[33m';   // yellow (ANSI 3, closest standard to #d79921)
-const H2 = '\x1b[92m';   // bright-green   (ANSI 10)
-const H3 = '\x1b[92m';   // bright-green   (ANSI 10)
-const H4 = '\x1b[92m';   // bright-green   (ANSI 10)
-const LINK = '\x1b[96m'; // bright-cyan    (ANSI 14)
-const BOLD_FG = '\x1b[38;5;180m'; // #cfbd9c approx (256-color)
+// Hierarchy via brightness (style guide): headings/bold are bright-white,
+// which the theme maps to its brightest off-white (ANSI 15).
+const H1 = '\x1b[1;97m'; // bold bright-white (ANSI 15)
+const H2 = '\x1b[97m';   // bright-white     (ANSI 15)
+const H3 = '\x1b[97m';   // bright-white     (ANSI 15)
+const H4 = '\x1b[97m';   // bright-white     (ANSI 15)
+const LINK = '\x1b[96m'; // bright-cyan      (ANSI 14 — steel in default theme)
+const BOLD_FG = '\x1b[97m'; // bright-white  (ANSI 15)
 const CODE_FG = '\x1b[96m';    // bright-cyan
 const CODE_BG = '\x1b[48;5;235m';  // dark bg tint (near-neutral, works on any dark theme)
 const BLOCK_BORDER = '\x1b[90m';   // bright-black (dim gray)

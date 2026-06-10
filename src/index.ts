@@ -43,6 +43,21 @@ function connectThemeToBus(): void {
 }
 
 /**
+ * Keep the tmux-style bottom status bar clock current.
+ */
+function initStatusClock(): void {
+  const el = document.getElementById('status-clock');
+  if (!el) return;
+  const tick = (): void => {
+    const d = new Date();
+    el.textContent =
+      `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  };
+  tick();
+  window.setInterval(tick, 30_000);
+}
+
+/**
  * Main async initialization routine.
  * Called once when the page loads.
  */
@@ -51,6 +66,9 @@ export async function main(): Promise<void> {
 
   // Apply initial theme CSS variables
   applyThemeCSSVars(themeManager.getTheme());
+
+  // Bottom status bar clock
+  initStatusClock();
 
   // Bridge theme changes onto the event bus
   connectThemeToBus();
@@ -117,30 +135,24 @@ export async function main(): Promise<void> {
   // ── File explorer (m4): loads manifest, renders NERDTree ────────────────
   void initFileExplorerPanel(fileExplorerEl).then(() => {
     log.info('File explorer mounted');
-    // Populate the mobile sidebar with a clone of the desktop explorer tree.
-    // data-path attributes are preserved by cloneNode; we add a delegated
-    // click listener to re-wire navigation since event handlers don't clone.
-    const mobileSidebarEl =
-      document.getElementById('mobile-explorer-sidebar') ??
-      document.getElementById('mobile-sidebar');
-    if (mobileSidebarEl) {
-      mobileSidebarEl.innerHTML = '';
-      // Clone the inner .nerd-tree element (not #file-explorer) so the mobile
-      // CSS rule that hides #file-explorer by ID doesn't apply to the clone.
-      const treeEl = fileExplorerEl.querySelector('.nerd-tree') ?? fileExplorerEl;
-      mobileSidebarEl.appendChild(treeEl.cloneNode(true));
-      mobileSidebarEl.addEventListener('click', (e) => {
-        const item = (e.target as HTMLElement).closest<HTMLElement>('[data-path]');
-        if (!item?.dataset['path']) return;
-        bus.emit(EVENT_TYPES.FOCUS_FILE, {
-          path: item.dataset['path'],
-          triggerSource: 'explorer',
-        });
-      });
-    }
   }).catch((err: unknown) => {
     log.error('File explorer failed to mount', err);
   });
+
+  // Mobile sidebar gets its own live FileExplorer instance (not a clone of
+  // the desktop tree): it subscribes to FOCUS_FILE itself, so the selected
+  // item stays in sync when navigation happens elsewhere. The manifest is
+  // cached, so the second init costs no extra fetch.
+  const mobileSidebarEl =
+    document.getElementById('mobile-explorer-sidebar') ??
+    document.getElementById('mobile-sidebar');
+  if (mobileSidebarEl) {
+    void initFileExplorerPanel(mobileSidebarEl).then(() => {
+      log.info('Mobile file explorer mounted');
+    }).catch((err: unknown) => {
+      log.error('Mobile file explorer failed to mount', err);
+    });
+  }
 
   // ── Vim editor (m4): CodeMirror 6 + vim keybindings, read-only ──────────
   initVimEditor(vimEditorEl, powerlineEl);
@@ -149,6 +161,10 @@ export async function main(): Promise<void> {
   // ── CLI drawer terminal (m5) ─────────────────────────────────────────────
   cliTerminal = new CLITerminal(themeManager);
   cliTerminal.mount(cliDrawerEl);
+
+  // Focus the agent chat last so the first blinking cursor the user sees is
+  // the agent prompt (later mounts must not steal it).
+  terminal.focus();
 
   log.info('All panels mounted', { manifestEntries: manifest?.entries.length ?? 0 });
 }

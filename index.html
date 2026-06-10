@@ -23,35 +23,51 @@
   <link rel="stylesheet" href="/src/layout/style.css" />
 
   <style>
-    /* ── CSS Custom Properties (Gruvbox Dark Hard defaults) ── */
-    /* Overridden at runtime by applyThemeCSSVars() in theme.ts  */
+    /* ── CSS Custom Properties (restrained-terminal defaults) ── */
+    /* See restyle/portfolio-style-guide.md for the palette roles. */
+    /* Overridden at runtime by applyThemeCSSVars() in theme.ts    */
     :root {
-      --tmux-green: #44ff88;
-      --bg-main: #1d2021;
-      --fg-main: #ebdbb2;
-      --cursor: #ebdbb2;
-      --selection: #504945;
-      --ansi-0: #282828;
-      --ansi-1: #cc241d;
-      --ansi-2: #98971a;
-      --ansi-3: #d79921;
-      --ansi-4: #458588;
-      --ansi-5: #b16286;
-      --ansi-6: #689d6a;
-      --ansi-7: #a89984;
-      --ansi-8: #928374;
-      --ansi-9: #fb4934;
-      --ansi-10: #b8bb26;
-      --ansi-11: #fabd2f;
-      --ansi-12: #83a598;
-      --ansi-13: #d3869b;
-      --ansi-14: #8ec07c;
-      --ansi-15: #ebdbb2;
+      --tmux-green: #9aa5b1;
+      --divider: #1f1f22;
+      --bg-main: #0e0e10;
+      --fg-main: #c8c8c2;
+      --cursor: #c8c8c2;
+      --selection: #2a2a2d;
+      --bg-elev: #16161a;
+      --bg-chip: #1a1a1d;
+      --border: #1f1f22;
+      --dim: #6b6b6b;
+      --dim-deep: #3a3a3c;
+      --fg-bright: #e2e2dc;
+      --accent: #9aa5b1;
+      --accent-edge: #3a4048;
+      --ansi-0: #16161a;
+      --ansi-1: #b05656;
+      --ansi-2: #7c9885;
+      --ansi-3: #a89868;
+      --ansi-4: #8ba3c4;
+      --ansi-5: #a08ca8;
+      --ansi-6: #9aa5b1;
+      --ansi-7: #c8c8c2;
+      --ansi-8: #6b6b6b;
+      --ansi-9: #c46a6a;
+      --ansi-10: #8fae98;
+      --ansi-11: #bcab76;
+      --ansi-12: #9fb4d1;
+      --ansi-13: #b3a0ba;
+      --ansi-14: #aeb9c5;
+      --ansi-15: #e2e2dc;
     }
   </style>
 </head>
 <body>
   <div id="app">
+    <!-- Top bar: window title (row 1, spans all columns) -->
+    <header id="top-bar">
+      <span class="top-bar-left"><span class="top-bar-dot">●</span> www — daniel peregolise</span>
+      <span class="top-bar-right">portfolio.dev</span>
+    </header>
+
     <!-- Left panel: AI Agent Shell (spans all grid rows, full height) -->
     <div id="agent-shell" class="panel left-panel">
       <!-- xterm.js AgentTerminal mounts here (m3) -->
@@ -91,6 +107,12 @@
     <div id="cli-drawer" class="panel cli-drawer">
       <!-- xterm.js CLITerminal mounts here (m5) -->
     </div>
+
+    <!-- Bottom status bar: tmux-style repo line (last row, spans all columns) -->
+    <footer id="bottom-status-bar">
+      <span class="status-left"><span class="status-repo">portfolio</span> master ✓</span>
+      <span class="status-right">utf-8 · 100% · <span id="status-clock">00:00</span></span>
+    </footer>
   </div>
 
   <!-- Mobile hamburger button (☰) — shown only on mobile via CSS -->

@@ -13,11 +13,12 @@ export interface QuickAction {
   query: string;
 }
 
+// Labels read as agent prompts so it's obvious they ask the agent something.
 export const QUICK_ACTIONS: readonly QuickAction[] = [
-  { key: '1', label: 'About me',   query: 'Tell me about Daniel' },
-  { key: '2', label: 'Projects',   query: "Show me Daniel's projects" },
-  { key: '3', label: 'Experience', query: "What is Daniel's work experience?" },
-  { key: '4', label: 'Contact',    query: 'How can I contact Daniel?' },
+  { key: '1', label: 'ask about me',         query: 'Tell me about Daniel' },
+  { key: '2', label: 'ask about projects',   query: "Show me Daniel's projects" },
+  { key: '3', label: 'ask about experience', query: "What is Daniel's work experience?" },
+  { key: '4', label: 'ask how to contact',   query: 'How can I contact Daniel?' },
 ];
 
 // ─── ANSI palette ─────────────────────────────────────────────────────────────

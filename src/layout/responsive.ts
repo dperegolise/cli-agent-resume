@@ -60,13 +60,16 @@ export class MobileLayout {
     // Wire backdrop click → close
     this.backdropEl?.addEventListener('click', () => this.close());
 
-    // Delegate file-item clicks inside sidebar → close
+    // Delegate file-item clicks inside sidebar → close so the page is visible.
+    // Capture phase: the FileExplorer item handler calls stopPropagation(),
+    // which would otherwise prevent this listener from ever firing.
+    // Directory rows have no data-path, so expanding a folder keeps it open.
     this.sidebarEl?.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
       if (target.closest('.file-item, .nerd-tree-item, a, [data-path]')) {
         this.close();
       }
-    });
+    }, true);
 
     // MediaQueryList change listener
     this.mq.addEventListener('change', (e) => {

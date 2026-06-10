@@ -48,7 +48,7 @@ export class CLITerminal {
     this.fitAddon = new FitAddon();
     this.term = new Terminal({
       fontFamily: "'JetBrains Mono', 'Symbols Nerd Font', monospace",
-      fontSize: 13,
+      fontSize: 12,
       lineHeight: 1.2,
       cursorBlink: true,
       scrollback: 1000,

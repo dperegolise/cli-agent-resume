@@ -4,7 +4,7 @@
  */
 
 import { EditorState } from '@codemirror/state';
-import { EditorView, drawSelection } from '@codemirror/view';
+import { EditorView, drawSelection, lineNumbers } from '@codemirror/view';
 import { history } from '@codemirror/commands';
 import { markdown } from '@codemirror/lang-markdown';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
@@ -18,73 +18,77 @@ import { DEFAULT } from '../theme.js';
 import type { FocusFileEvent } from '../types.js';
 
 // ─── Default theme syntax highlight style ────────────────────────────────────
+// Restrained palette (restyle/portfolio-style-guide.md): hierarchy comes from
+// brightness, hue is reserved for semantics, and everything stays low-chroma.
 
-const gruvboxHighlight = HighlightStyle.define([
-  // Headings: yellow → bright-cyan → bright-green (ANSI 11 → 14 → 10)
-  { tag: t.heading1,       color: '#d79921', fontWeight: 'bold' },
-  { tag: t.heading2,       color: '#73c99d', fontWeight: 'bold' },
-  { tag: t.heading3,       color: '#73c99d', fontWeight: 'bold' },
-  { tag: t.heading,        color: '#73c99d', fontWeight: 'bold' },
-  // Emphasis / strong
-  { tag: t.emphasis,       color: '#9b84c2', fontStyle: 'italic' },
-  { tag: t.strong,         color: '#cfbd9c', fontWeight: 'bold' },
-  // Links
-  { tag: t.link,           color: '#63cddb', textDecoration: 'underline' },
-  { tag: t.url,            color: '#63cddb' },
-  // Code
-  { tag: t.monospace,      color: '#4dbdcb', fontFamily: "'JetBrains Mono', monospace" },
-  { tag: t.contentSeparator, color: '#3d4351' },
-  // Quotes / comments
-  { tag: t.comment,        color: '#3d4351', fontStyle: 'italic' },
-  { tag: t.blockComment,   color: '#3d4351', fontStyle: 'italic' },
-  // Lists / punctuation
-  { tag: t.list,           color: '#d4a76a' },
-  { tag: t.punctuation,    color: '#9ca3af' },
-  { tag: t.processingInstruction, color: '#9b84c2' },
-  // Strings / atoms
-  { tag: t.string,         color: '#5faf87' },
-  { tag: t.atom,           color: '#9b84c2' },
-  // Keywords / operators (for embedded code blocks)
-  { tag: t.keyword,        color: '#e06c75' },
-  { tag: t.operator,       color: '#4dbdcb' },
-  { tag: t.number,         color: '#9b84c2' },
-  { tag: t.bool,           color: '#9b84c2' },
-  { tag: t.variableName,   color: '#5eacd3' },
-  { tag: t.function(t.variableName), color: '#5faf87' },
-  { tag: t.typeName,       color: '#d4a76a' },
-  { tag: t.className,      color: '#d4a76a' },
-  { tag: t.propertyName,   color: '#5eacd3' },
-  { tag: t.tagName,        color: '#e06c75' },
-  { tag: t.attributeName,  color: '#d4a76a' },
-  { tag: t.attributeValue, color: '#5faf87' },
+const defaultHighlight = HighlightStyle.define([
+  // Headings: desaturated vim-colorscheme hues — ochre h1, sage below
+  { tag: t.heading1,       color: '#bcab76', fontWeight: 'bold' },
+  { tag: t.heading2,       color: '#8fae98', fontWeight: 'bold' },
+  { tag: t.heading3,       color: '#8fae98', fontWeight: 'bold' },
+  { tag: t.heading,        color: '#8fae98', fontWeight: 'bold' },
+  // Strong: brighter off-white; emphasis: muted mauve italic
+  { tag: t.strong,         color: '#e2e2dc', fontWeight: 'bold' },
+  { tag: t.emphasis,       color: '#b3a0ba', fontStyle: 'italic' },
+  // Links: the one quiet accent (desaturated steel)
+  { tag: t.link,           color: '#9aa5b1', textDecoration: 'underline' },
+  { tag: t.url,            color: '#9aa5b1' },
+  // Inline code: muted sage
+  { tag: t.monospace,      color: '#7c9885', fontFamily: "'JetBrains Mono', monospace" },
+  { tag: t.contentSeparator, color: '#6b6b6b' },
+  // Quotes / comments — secondary gray
+  { tag: t.comment,        color: '#6b6b6b', fontStyle: 'italic' },
+  { tag: t.blockComment,   color: '#6b6b6b', fontStyle: 'italic' },
+  // List bullets get a dry ochre; other syntax markers (#, **, >) recede
+  { tag: t.list,           color: '#a89868' },
+  { tag: t.punctuation,    color: '#6b6b6b' },
+  { tag: t.processingInstruction, color: '#6b6b6b' },
+  // Strings / atoms — muted sage / mauve
+  { tag: t.string,         color: '#7c9885' },
+  { tag: t.atom,           color: '#a08ca8' },
+  // Keywords / operators (for embedded code blocks) — all desaturated
+  { tag: t.keyword,        color: '#b05656' },
+  { tag: t.operator,       color: '#9aa5b1' },
+  { tag: t.number,         color: '#a08ca8' },
+  { tag: t.bool,           color: '#a08ca8' },
+  { tag: t.variableName,   color: '#8ba3c4' },
+  { tag: t.function(t.variableName), color: '#7c9885' },
+  { tag: t.typeName,       color: '#a89868' },
+  { tag: t.className,      color: '#a89868' },
+  { tag: t.propertyName,   color: '#8ba3c4' },
+  { tag: t.tagName,        color: '#b05656' },
+  { tag: t.attributeName,  color: '#a89868' },
+  { tag: t.attributeValue, color: '#7c9885' },
 ]);
 
 // ─── Default theme CodeMirror theme ──────────────────────────────────────────
 
-const gruvboxTheme = EditorView.theme(
+const defaultTheme = EditorView.theme(
   {
     '&': {
       height: '100%',
       backgroundColor: DEFAULT.colors.bg,
       color: DEFAULT.colors.fg,
       fontFamily: "'JetBrains Mono', 'Symbols Nerd Font', monospace",
-      fontSize: '13px',
+      fontSize: '12px',
     },
     '.cm-content': {
       caretColor: DEFAULT.colors.cursor,
-      padding: '4px 8px',
+      padding: '8px 10px',
     },
     '.cm-cursor': {
       borderLeftColor: DEFAULT.colors.cursor,
       borderLeftWidth: '2px',
     },
+    // Gutter recedes hard: same bg as the buffer, near-invisible numbers
     '.cm-gutters': {
-      backgroundColor: DEFAULT.colors.ansi[0],
-      color: DEFAULT.colors.ansi[8],
-      borderRight: `1px solid ${DEFAULT.colors.selection}`,
+      backgroundColor: DEFAULT.colors.bg,
+      color: '#3a3a3c',
+      border: 'none',
     },
-    '.cm-activeLineGutter': { backgroundColor: DEFAULT.colors.selection },
-    '.cm-activeLine':       { backgroundColor: DEFAULT.colors.selection },
+    '.cm-lineNumbers .cm-gutterElement': { padding: '0 10px 0 8px' },
+    '.cm-activeLineGutter': { backgroundColor: 'transparent', color: DEFAULT.colors.ansi[8] },
+    '.cm-activeLine':       { backgroundColor: DEFAULT.colors.ansi[0] },
     '.cm-scroller':         { overflow: 'auto' },
     '.cm-vim-panel':        { background: DEFAULT.colors.bg, color: DEFAULT.colors.fg, padding: '0 8px', fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', minHeight: '1.4em', borderTop: `1px solid ${DEFAULT.colors.selection}` },
     '.cm-vim-panel input':  { background: 'transparent', color: DEFAULT.colors.fg, fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', outline: 'none', border: 'none', width: '100%' },
@@ -149,12 +153,14 @@ export class VimEditor {
       history(),
       // Draw CM6's selection layer — vim suppresses native ::selection but relies on this
       drawSelection(),
+      // Editor gutter — near-invisible line numbers, like a real buffer
+      lineNumbers(),
       // Markdown language support + embedded language highlighting
       markdown(),
-      // Gruvbox color theme
-      gruvboxTheme,
+      // Restrained-terminal color theme
+      defaultTheme,
       // Syntax highlighting (must come after the language extension)
-      syntaxHighlighting(gruvboxHighlight),
+      syntaxHighlighting(defaultHighlight),
       // Status bar updater
       powerlineBarExtension(this.statusBar),
       // Line wrapping
@@ -235,12 +241,17 @@ export class VimEditor {
       },
     );
 
-    // Start in preview mode. The editor stays visible (keeps vim focus/events)
-    // and the preview + hint overlay it.
-    this._inNormalMode = true;
-    this.view.focus();
-    if (this._previewEl) this._previewEl.style.display = 'block';
-    if (this._hintEl) this._hintEl.style.display = 'flex';
+    // Wire the powerline [preview]/[source] toggle
+    this.statusBar.onToggleView = () => this.toggleView();
+
+    // Start in source (vim) mode showing raw markdown. The rendered preview
+    // is opt-in: powerline toggle, :preview, or :q.
+    // Don't steal focus here — the agent terminal owns the initial cursor;
+    // clicking into the buffer focuses CodeMirror naturally.
+    this._inNormalMode = false;
+    this.statusBar.setSurface('source');
+    if (this._previewEl) this._previewEl.style.display = 'none';
+    if (this._hintEl) this._hintEl.style.display = 'none';
 
     // Load default file
     void this.loadAndDisplayFile('index.md');
@@ -350,9 +361,19 @@ export class VimEditor {
 
   // ─── Preview / mode swap ────────────────────────────────────────────────────
 
+  /** Toggle between the raw-markdown source view and the rendered preview. */
+  toggleView(): void {
+    if (this._inNormalMode) {
+      this._setMode(false);
+    } else {
+      this._forceNormalMode();
+    }
+  }
+
   private _setMode(normal: boolean): void {
     if (this._inNormalMode === normal) return;
     this._inNormalMode = normal;
+    this.statusBar?.setSurface(normal ? 'preview' : 'source');
 
     if (!this._previewEl) return;
 
@@ -362,6 +383,9 @@ export class VimEditor {
       this._syncPreviewScroll(this._getEditorScrollPct());
       this._previewEl.style.display = 'block';
       if (this._hintEl) this._hintEl.style.display = 'flex';
+      // Focus the preview so its keydown forwarder still catches insert keys
+      // (e.g. after the powerline toggle stole focus from the editor)
+      this._previewEl.focus({ preventScroll: true });
     } else {
       const pct = this._previewEl.scrollTop /
         (this._previewEl.scrollHeight - this._previewEl.clientHeight || 1);
@@ -421,6 +445,7 @@ export class VimEditor {
       Vim.defineEx('xit', 'xi', returnToPreview);
       Vim.defineEx('quit', 'q', returnToPreview); // :q   — return to preview
       Vim.defineEx('qall', 'qa', returnToPreview);// :qa  — return to preview
+      Vim.defineEx('preview', 'pre', returnToPreview); // :preview — rendered view
     } catch (err) {
       console.warn('[VimEditor] Could not patch vim ex-commands:', err);
     }

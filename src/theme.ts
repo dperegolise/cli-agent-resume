@@ -7,33 +7,35 @@
 import type { ThemeConfig, ThemeColors } from './types.js';
 
 // ─── Default ─────────────────────────────────────────────────────────────────
-// Professional dark terminal: charcoal background, slate-grey foreground,
-// single teal accent. Low-saturation ANSI palette — readable without noise.
+// "Restrained terminal" (restyle/portfolio-style-guide.md): neutral near-black
+// base, one muted off-white for ~90% of text, hierarchy via brightness, and
+// low-chroma semantic colors only. Color is functional, never decorative.
 
 const defaultColors: ThemeColors = {
-  bg: '#1a1c1e',
-  fg: '#c8ccd4',
-  cursor: '#5eacd3',
-  selection: '#2d3748',
+  bg: '#0e0e10',
+  fg: '#c8c8c2',
+  cursor: '#c8c8c2',
+  selection: '#2a2a2d',
   ansi: [
-    '#1e2124', // 0  black
-    '#e06c75', // 1  red      — error/danger
-    '#5faf87', // 2  green    — success/ok
-    '#d4a76a', // 3  yellow   — warning/highlight
-    '#5eacd3', // 4  blue     — info/link (matches cursor/accent)
-    '#9b84c2', // 5  magenta  — subtle secondary
-    '#4dbdcb', // 6  cyan     — primary accent
-    '#9ca3af', // 7  white    — normal text
-    '#3d4351', // 8  bright-black (comments/dim)
-    '#f07080', // 9  bright-red
-    '#73c99d', // 10 bright-green
-    '#e0bc7a', // 11 bright-yellow
-    '#7abfe0', // 12 bright-blue
-    '#b09bd4', // 13 bright-magenta
-    '#63cddb', // 14 bright-cyan
-    '#dde1e8', // 15 bright-white
+    '#16161a', // 0  black    — elevated surfaces (status bars, chips)
+    '#b05656', // 1  red      — brick, not crimson
+    '#7c9885', // 2  green    — muted sage
+    '#a89868', // 3  yellow   — dry ochre
+    '#8ba3c4', // 4  blue     — soft desaturated steel-blue
+    '#a08ca8', // 5  magenta  — muted mauve
+    '#9aa5b1', // 6  cyan     — desaturated steel (the accent)
+    '#c8c8c2', // 7  white    — the workhorse off-white
+    '#6b6b6b', // 8  bright-black — secondary text, paths, metadata
+    '#c46a6a', // 9  bright-red
+    '#8fae98', // 10 bright-green
+    '#bcab76', // 11 bright-yellow
+    '#9fb4d1', // 12 bright-blue
+    '#b3a0ba', // 13 bright-magenta
+    '#aeb9c5', // 14 bright-cyan
+    '#e2e2dc', // 15 bright-white — headings/bold (hierarchy via brightness)
   ],
-  accentColor: '#4dbdcb', // teal — dividers and structural UI
+  accentColor: '#9aa5b1',  // desaturated steel — the one quiet accent
+  dividerColor: '#1f1f22', // flat 1px pane separators, near-invisible
 };
 
 export const DEFAULT: ThemeConfig = {
@@ -374,6 +376,18 @@ export function applyThemeCSSVars(theme: ThemeConfig): void {
   root.style.setProperty('--fg-main', c.fg);
   root.style.setProperty('--cursor', c.cursor);
   root.style.setProperty('--selection', c.selection);
+
+  // Semantic UI variables (style-guide roles), derived per theme:
+  // dividers fall back to the accent so legacy themes keep their tmux line.
+  root.style.setProperty('--divider', c.dividerColor ?? c.accentColor);
+  root.style.setProperty('--accent', c.accentColor);
+  root.style.setProperty('--accent-edge', `color-mix(in srgb, ${c.accentColor} 35%, ${c.bg})`);
+  root.style.setProperty('--bg-elev', c.ansi[0]);
+  root.style.setProperty('--bg-chip', c.ansi[0]);
+  root.style.setProperty('--border', `color-mix(in srgb, ${c.fg} 10%, ${c.bg})`);
+  root.style.setProperty('--dim', c.ansi[8]);
+  root.style.setProperty('--dim-deep', `color-mix(in srgb, ${c.ansi[8]} 50%, ${c.bg})`);
+  root.style.setProperty('--fg-bright', c.ansi[15]);
 
   c.ansi.forEach((color, i) => {
     root.style.setProperty(`--ansi-${i}`, color);

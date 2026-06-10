@@ -9,27 +9,22 @@ import type { ViewUpdate } from '@codemirror/view';
 import { EditorView } from '@codemirror/view';
 import { getCM } from '@replit/codemirror-vim';
 
-// ─── Powerline glyph constants ────────────────────────────────────────────────
-
-/** U+E0B0 — right-pointing filled triangle (powerline right separator) */
-const SEP_RIGHT = '';
-/** U+E0B2 — left-pointing filled triangle (powerline left separator) */
-const SEP_LEFT = '';
-
 // ─── CSS (injected once) ──────────────────────────────────────────────────────
 
+// Flat Neovim-style status line (restyle/portfolio-style-guide.md): the mode
+// block is the one earned color fill; everything else is dim text on bg-elev.
 const CSS = `
 .powerline-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 24px;
+  height: 100%;
   padding: 0 0;
-  background: var(--bg-main, #1a1c1e);
-  border-top: 1px solid var(--tmux-green, #44ff88);
+  background: var(--bg-elev, #16161a);
+  border-top: 1px solid var(--border, #1f1f22);
   font-family: 'JetBrains Mono', 'Symbols Nerd Font', monospace;
   font-size: 11px;
-  color: var(--fg-main, #c8ccd4);
+  color: var(--dim, #6b6b6b);
   overflow: hidden;
   flex-shrink: 0;
   transition: background 0.15s ease;
@@ -37,7 +32,7 @@ const CSS = `
 }
 
 .powerline-bar.loading {
-  background: var(--ansi-8, #3d4351);
+  background: var(--selection, #2a2a2d);
 }
 
 .powerline-segment {
@@ -52,25 +47,25 @@ const CSS = `
   align-items: center;
   height: 100%;
   padding: 0 8px;
-  font-weight: bold;
+  font-weight: 500;
   font-size: 11px;
   letter-spacing: 0.04em;
 }
 
 .powerline-mode[data-mode="NORMAL"] {
-  background: #5faf87;
-  color: #1a1c1e;
+  background: #7c9885;
+  color: #0e0e10;
 }
 
 .powerline-mode[data-mode="INSERT"] {
-  background: #5eacd3;
-  color: #1a1c1e;
+  background: #8ba3c4;
+  color: #0e0e10;
   animation: insert-flash 0.5s ease-out;
 }
 
 .powerline-mode[data-mode="VISUAL"] {
-  background: #9b84c2;
-  color: #1a1c1e;
+  background: #a08ca8;
+  color: #0e0e10;
 }
 
 @keyframes insert-flash {
@@ -79,71 +74,49 @@ const CSS = `
   100% { opacity: 1; }
 }
 
-.powerline-sep {
-  height: 100%;
-  display: inline-flex;
-  align-items: center;
-  font-size: 18px;
-  line-height: 1;
-  padding: 0;
-}
-
-/* Right-side sep: color matches the mode pill */
-.powerline-sep-mode-normal {
-  color: #5faf87;
-  background: var(--bg-main, #1a1c1e);
-}
-.powerline-sep-mode-insert {
-  color: #5eacd3;
-  background: var(--bg-main, #1a1c1e);
-}
-.powerline-sep-mode-visual {
-  color: #9b84c2;
-  background: var(--bg-main, #1a1c1e);
-}
-
 .powerline-filepath {
-  padding: 0 6px;
+  padding: 0 8px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 300px;
-  color: var(--fg-main, #c8ccd4);
+  color: var(--dim, #6b6b6b);
   font-size: 11px;
 }
 
 .powerline-ro {
-  padding: 0 4px;
-  color: #e06c75;
-  font-weight: bold;
-  font-size: 10px;
+  padding: 0 2px;
+  color: var(--dim, #6b6b6b);
+  font-size: 11px;
+}
+
+.powerline-toggle {
+  padding: 0 8px;
+  color: var(--accent, #9aa5b1);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.powerline-toggle:hover {
+  color: var(--fg-bright, #e2e2dc);
 }
 
 .powerline-filetype {
   padding: 0 6px;
-  color: #4dbdcb;
-  font-size: 10px;
-}
-
-.powerline-sep-right-accent {
-  color: var(--ansi-8, #3d4351);
-  background: var(--bg-main, #1a1c1e);
-  height: 100%;
-  display: inline-flex;
-  align-items: center;
-  font-size: 18px;
+  color: var(--dim, #6b6b6b);
+  font-size: 11px;
 }
 
 .powerline-linecol {
   padding: 0 6px;
-  color: var(--fg-main, #c8ccd4);
+  color: var(--dim, #6b6b6b);
   font-size: 11px;
 }
 
 .powerline-scrollpct {
-  padding: 0 4px;
-  color: var(--ansi-8, #3d4351);
-  font-size: 10px;
+  padding: 0 8px 0 0;
+  color: var(--dim, #6b6b6b);
+  font-size: 11px;
 }
 
 .powerline-hint {
@@ -151,7 +124,7 @@ const CSS = `
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #3d4351;
+  color: var(--dim, #6b6b6b);
   font-style: italic;
   font-size: 10px;
 }
@@ -162,7 +135,7 @@ const CSS = `
 }
 
 .powerline-cursor {
-  color: var(--tmux-green, #44ff88);
+  color: var(--fg-main, #c8c8c2);
   animation: powerline-pulse 2.8s ease-in-out infinite;
   font-style: normal;
   font-size: 12px;
@@ -186,17 +159,37 @@ export class PowerlineBar {
   private currentFile: string = 'index.md';
   private currentMode: string = 'NORMAL';
   private prevMode: string = 'NORMAL';
+  private surface: 'source' | 'preview' = 'source';
+  private lastPos = { lineNum: 1, colNum: 1, scrollPct: 0 };
+
+  /** Invoked when the user clicks the [preview]/[source] toggle. */
+  onToggleView?: () => void;
 
   constructor(element: HTMLElement) {
     this.element = element;
     element.className = 'powerline-bar';
     injectCSS();
+    // Delegated click — render() rewrites innerHTML, so listeners can't live
+    // on the toggle span itself.
+    element.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('.powerline-toggle')) {
+        this.onToggleView?.();
+      }
+    });
     this.render('NORMAL', 'index.md', 1, 1, 0);
   }
 
   /** Called when the editor loads a new file. */
   setFile(path: string): void {
     this.currentFile = path;
+  }
+
+  /** Tell the bar which surface is showing: raw source or rendered preview. */
+  setSurface(surface: 'source' | 'preview'): void {
+    if (this.surface === surface) return;
+    this.surface = surface;
+    const { lineNum, colNum, scrollPct } = this.lastPos;
+    this.render(this.currentMode, this.currentFile, lineNum, colNum, scrollPct);
   }
 
   /** Mark the bar as loading (background shift). */
@@ -294,8 +287,8 @@ export class PowerlineBar {
     colNum: number,
     scrollPct: number,
   ): void {
+    this.lastPos = { lineNum, colNum, scrollPct };
     const fileType = filePath.endsWith('.md') ? 'markdown' : 'text';
-    const sepClass = `powerline-sep-mode-${mode.toLowerCase()}`;
 
     // Scroll label
     let scrollLabel: string;
@@ -303,17 +296,24 @@ export class PowerlineBar {
     else if (scrollPct >= 99) scrollLabel = 'Bot';
     else scrollLabel = `${scrollPct}%`;
 
+    const hint = this.surface === 'preview'
+      ? `<span class="powerline-hint"><span class="powerline-cursor">▋</span> press i to edit</span>`
+      : '';
+    const toggleLabel = this.surface === 'source' ? '[preview]' : '[source]';
+    const toggleTitle = this.surface === 'source'
+      ? 'Show rendered preview (:preview)'
+      : 'Show raw markdown (press i)';
+
     this.element.innerHTML = `
       <div class="powerline-segment" style="height:100%">
         <span class="powerline-mode" data-mode="${escapeHtml(mode)}"> ${escapeHtml(mode)} </span>
-        <span class="powerline-sep ${escapeHtml(sepClass)}">${SEP_RIGHT}</span>
         <span class="powerline-filepath" title="${escapeHtml(filePath)}">${escapeHtml(filePath)}</span>
         <span class="powerline-ro">[RO]</span>
       </div>
       <div class="powerline-segment" style="height:100%">
-        ${mode === 'NORMAL' ? `<span class="powerline-hint"><span class="powerline-cursor">▋</span> press i to edit</span>` : ''}
-        <span class="powerline-filetype">${escapeHtml(fileType)}</span>
-        <span class="powerline-sep powerline-sep-right-accent">${SEP_LEFT}</span>
+        ${hint}
+        <span class="powerline-toggle" role="button" tabindex="0" title="${escapeHtml(toggleTitle)}">${escapeHtml(toggleLabel)}</span>
+        <span class="powerline-filetype">${escapeHtml(fileType)} · utf-8</span>
         <span class="powerline-linecol">${lineNum}:${colNum}</span>
         <span class="powerline-scrollpct">${scrollLabel}</span>
       </div>

@@ -27,11 +27,12 @@ const CSS = `
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  background: var(--bg-main, #1d2021);
+  background: var(--bg-main, #0e0e10);
   padding: 4px 0;
   font-family: 'JetBrains Mono', 'Symbols Nerd Font', monospace;
-  font-size: 12px;
-  color: var(--fg-main, #ebdbb2);
+  font-size: 11px;
+  line-height: 1.85;
+  color: var(--fg-main, #c8c8c2);
   outline: none;
 }
 
@@ -60,7 +61,7 @@ const CSS = `
   display: inline-block;
   width: 1ch;
   flex-shrink: 0;
-  color: var(--tmux-green, #44ff88);
+  color: var(--accent, #9aa5b1);
 }
 
 .nerd-tree .tree-item:hover::before {
@@ -68,7 +69,7 @@ const CSS = `
 }
 
 .nerd-tree .tree-item:hover {
-  color: var(--tmux-green, #44ff88);
+  color: var(--fg-bright, #e2e2dc);
 }
 
 .nerd-tree .tree-item.selected::before {
@@ -76,26 +77,26 @@ const CSS = `
 }
 
 .nerd-tree .tree-item.selected {
-  color: #d79921;
+  color: var(--accent, #9aa5b1);
 }
 
 .nerd-tree .tree-item.selected .tree-icon {
-  color: #d79921;
+  color: var(--accent, #9aa5b1);
 }
 
 .nerd-tree .tree-icon {
   flex-shrink: 0;
-  font-size: 13px;
-  color: var(--ansi-4, #458588);
+  font-size: 12px;
+  color: var(--dim, #6b6b6b);
   font-family: 'Symbols Nerd Font', 'JetBrains Mono', monospace;
 }
 
 .nerd-tree .tree-icon.icon-md {
-  color: #8ec07c;
+  color: var(--dim, #6b6b6b);
 }
 
 .nerd-tree .tree-icon.icon-dir {
-  color: #fabd2f;
+  color: var(--dim, #6b6b6b);
 }
 
 .nerd-tree .tree-label {
@@ -119,13 +120,13 @@ const CSS = `
   top: 4px;
   left: 4px;
   right: 4px;
-  background: #3c3836;
-  border: 1px solid #504945;
-  border-radius: 4px;
+  background: var(--bg-elev, #16161a);
+  border: 1px solid var(--selection, #2a2a2d);
+  border-radius: 0;
   padding: 8px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: #ebdbb2;
+  color: var(--fg-main, #c8c8c2);
   z-index: 100;
 }
 
@@ -137,14 +138,14 @@ const CSS = `
   padding: 1px 6px;
 }
 .nerd-tree-help td:first-child {
-  color: #b8bb26;
+  color: var(--accent, #9aa5b1);
   font-weight: bold;
   white-space: nowrap;
 }
 .nerd-tree-help .help-close {
   float: right;
   cursor: pointer;
-  color: #fb4934;
+  color: var(--ansi-1, #b05656);
 }
 `;
 

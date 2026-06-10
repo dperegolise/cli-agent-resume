@@ -60,7 +60,7 @@ export class AgentTerminal {
 
     this.term = new Terminal({
       fontFamily: '"JetBrains Mono", "JetBrainsMono Nerd Font", monospace',
-      fontSize: 13,
+      fontSize: 12,
       lineHeight: 1.4,
       cursorBlink: true,
       cursorStyle: 'block',

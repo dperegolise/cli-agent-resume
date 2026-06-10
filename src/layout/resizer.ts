@@ -121,7 +121,8 @@ function initDrawerResizer(): void {
     app.classList.remove('drawer-collapsed');
 
     const newHeight = Math.min(MAX_DRAWER_PX, Math.max(MIN_DRAWER_PX, startDrawerHeight + delta));
-    app.style.gridTemplateRows = `1fr 1px ${newHeight}px`;
+    // Rows: top-bar | main | divider | drawer | bottom-status-bar
+    app.style.gridTemplateRows = `auto 1fr 1px ${newHeight}px auto`;
   }
 
   function onMouseUp(): void {
@@ -145,9 +146,11 @@ function initDrawerResizer(): void {
     dragMoved = false;
     isDragging = false;
 
-    // Read current drawer height from computed style (1fr resolves to px at runtime)
+    // Read current drawer height from computed style (1fr resolves to px at
+    // runtime). The drawer is the 4th of 5 rows: top-bar, main, divider,
+    // drawer, bottom-status-bar.
     const computedRows = getComputedStyle(app).gridTemplateRows.split(' ');
-    startDrawerHeight = parseFloat(computedRows[computedRows.length - 1]) || 220;
+    startDrawerHeight = parseFloat(computedRows[3] ?? '') || 220;
 
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
