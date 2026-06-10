@@ -1,13 +1,25 @@
 dist/
 node_modules/
-.claude/worktrees/
 .venv/
 venv/
+deactivate/
 __pycache__/
 *.pyc
 .env
 .env.local
+
+# Agentic / tooling state — not for external contributors
 .playwright-cli/
+.overtr.json
+.teamwork/
+.claude/
+restyle/
+
+# External reference checkouts — not part of the project
+reference-repos/
 
 # Resume source document (not published)
 Daniel_Peregolise_Resume.pdf
+
+# Screenshots from automated runs
+screenshots/

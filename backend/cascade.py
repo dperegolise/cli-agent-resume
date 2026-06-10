@@ -148,7 +148,7 @@ async def _call_openrouter(
                     json=payload,
                     headers={
                         "Authorization": f"Bearer {key}",
-                        "HTTP-Referer": "https://portfolio.example.com",
+                        "HTTP-Referer": "https://portfolio.example.com",  # TODO: update to your deployed domain (helps OpenRouter grant higher rate limits)
                         "Content-Type": "application/json",
                     },
                 )

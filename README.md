@@ -10,7 +10,7 @@ A CLI-aesthetic browser-based portfolio for Daniel Peregolise. Three tmux-green-
 
 - Node.js 20+, npm 9+
 - Python 3.11+
-- A running [routr](https://github.com/your-org/routr) instance on `127.0.0.1:8000` (or set `ROUTR_URL` to point elsewhere)
+- A running routr instance on `127.0.0.1:8000` (or set `ROUTR_URL` to point elsewhere; the cascade falls back gracefully if routr is unavailable)
 - At least one of: `OPENROUTER_API_KEY` or `HUGGINGFACE_API_KEY`
 
 ### 1. Install frontend dependencies
@@ -171,6 +171,28 @@ curl -N -X POST https://yourdomain.com/agent \
 
 ---
 
+## Portfolio content (`www/`)
+
+The `www/` directory contains the Markdown files displayed in the Vim editor panel. The
+files committed here are **illustrative placeholder content** for Daniel Peregolise. If
+you are forking this project for your own portfolio, replace all files under `www/` with
+your own content before deploying. The structure expected by the manifest loader is:
+
+```
+www/
+  index.md              landing / summary
+  about.md
+  contact.md
+  experience/
+    index.md
+    role-*.md           one file per role
+  projects/
+    index.md
+    project-*.md        one file per project
+```
+
+---
+
 ## Project structure
 
 ```
@@ -214,3 +236,11 @@ www/            portfolio content (.md files, served as static + indexed)
 **Rate limiting**: 20 requests per IP per 60-second sliding window. On breach, the IP is banned for 24 hours. The ban timestamp is returned in the `X-Client-Banned-Until` response header and stored in `localStorage` so the browser shows a friendly message without hitting the server again.
 
 **SSE wire contract**: `POST /agent` returns a text/event-stream with five event types: `token` (streamed LLM output), `focus_item` (navigate editor to a file), `search_results` (keyword search hits), `done` (stream complete), `error` (structured error).
+
+---
+
+## License
+
+This project is released under the [GNU General Public License v3.0](LICENSE). See the
+`LICENSE` file for full terms. Contributions are welcome under the same license — see
+[CONTRIBUTING.md](CONTRIBUTING.md).

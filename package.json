@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "postinstall": "find node_modules -mindepth 3 -name 'package.json' -path '*/@codemirror/state/package.json' -exec dirname {} \\; | xargs rm -rf 2>/dev/null; rm -rf node_modules/.vite"
+    "postinstall": "find node_modules -mindepth 3 -name 'package.json' -path '*/@codemirror/state/package.json' -exec dirname {} \\; | xargs rm -rf 2>/dev/null; rm -rf node_modules/.vite",
+    "_postinstall_note": "Workaround for a nested @codemirror/state version conflict: transitive deps bring in mismatched versions that break CodeMirror's shared StateField registry. We pin @codemirror/state@6.4.0 in overrides and this script removes any nested copies that npm still unpacks, then clears the Vite dep cache so it resolves cleanly on next dev/build."
   },
   "dependencies": {
     "@codemirror/commands": "^6.4.0",
