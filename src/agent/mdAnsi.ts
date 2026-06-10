@@ -12,10 +12,11 @@ const B  = '\x1b[1m';
 const DIM = '\x1b[2m';
 const IT = '\x1b[3m';
 const H1 = '\x1b[93m';   // bright-yellow  (ANSI 11)
-const H2 = '\x1b[96m';   // bright-cyan    (ANSI 14)
+const H2 = '\x1b[92m';   // bright-green   (ANSI 10)
 const H3 = '\x1b[92m';   // bright-green   (ANSI 10)
-const H4 = '\x1b[96m';   // bright-cyan    (ANSI 14)
-const LINK = '\x1b[92m'; // bright-green   (ANSI 10)
+const H4 = '\x1b[92m';   // bright-green   (ANSI 10)
+const LINK = '\x1b[96m'; // bright-cyan    (ANSI 14)
+const BOLD_FG = '\x1b[93m';    // bright-yellow  (ANSI 11)
 const CODE_FG = '\x1b[96m';    // bright-cyan
 const CODE_BG = '\x1b[48;5;235m';  // dark bg tint (near-neutral, works on any dark theme)
 const BLOCK_BORDER = '\x1b[90m';   // bright-black (dim gray)
@@ -33,9 +34,9 @@ function osc8(uri: string, text: string): string {
 
 function applyInline(text: string, validPaths?: Set<string>): string {
   text = text.replace(/`([^`]+)`/g, `${CODE_BG}${CODE_FG}$1${R}`);
-  text = text.replace(/\*\*\*(.+?)\*\*\*/g, `${B}${IT}$1${R}`);
-  text = text.replace(/\*\*(.+?)\*\*/g, `${B}$1${R}`);
-  text = text.replace(/__(.+?)__/g, `${B}$1${R}`);
+  text = text.replace(/\*\*\*(.+?)\*\*\*/g, `${B}${BOLD_FG}${IT}$1${R}`);
+  text = text.replace(/\*\*(.+?)\*\*/g, `${B}${BOLD_FG}$1${R}`);
+  text = text.replace(/__(.+?)__/g, `${B}${BOLD_FG}$1${R}`);
   text = text.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, `${IT}$1${R}`);
   text = text.replace(/(?<!_)_(?!_)(.+?)(?<!_)_(?!_)/g, `${IT}$1${R}`);
   // Markdown links — emit as OSC 8 if the target is a known portfolio path, otherwise dim text

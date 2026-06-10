@@ -22,15 +22,15 @@ import type { FocusFileEvent } from '../types.js';
 const gruvboxHighlight = HighlightStyle.define([
   // Headings: yellow → bright-cyan → bright-green (ANSI 11 → 14 → 10)
   { tag: t.heading1,       color: '#e0bc7a', fontWeight: 'bold' },
-  { tag: t.heading2,       color: '#63cddb', fontWeight: 'bold' },
+  { tag: t.heading2,       color: '#73c99d', fontWeight: 'bold' },
   { tag: t.heading3,       color: '#73c99d', fontWeight: 'bold' },
-  { tag: t.heading,        color: '#63cddb', fontWeight: 'bold' },
+  { tag: t.heading,        color: '#73c99d', fontWeight: 'bold' },
   // Emphasis / strong
   { tag: t.emphasis,       color: '#9b84c2', fontStyle: 'italic' },
-  { tag: t.strong,         color: '#dde1e8', fontWeight: 'bold' },
+  { tag: t.strong,         color: '#e0bc7a', fontWeight: 'bold' },
   // Links
-  { tag: t.link,           color: '#73c99d', textDecoration: 'underline' },
-  { tag: t.url,            color: '#73c99d' },
+  { tag: t.link,           color: '#63cddb', textDecoration: 'underline' },
+  { tag: t.url,            color: '#63cddb' },
   // Code
   { tag: t.monospace,      color: '#4dbdcb', fontFamily: "'JetBrains Mono', monospace" },
   { tag: t.contentSeparator, color: '#3d4351' },
