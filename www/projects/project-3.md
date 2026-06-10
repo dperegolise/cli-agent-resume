@@ -4,7 +4,7 @@ Bare-metal service orchestration for developers and AI agents: declarative multi
 orchestration with port isolation, health monitoring, and dependency ordering — without
 containers.
 
-**Source**: private repo — happy to walk through it.
+**GitHub**: https://github.com/dperegolise/devservr
 
 ---
 

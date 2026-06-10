@@ -4,7 +4,7 @@ Voice dictation at your cursor. Press a hotkey, speak, press again — your word
 text in whatever app has focus. Fully local: faster-whisper on your own hardware, no cloud
 services, no API keys, no network.
 
-**Source**: private repo — happy to walk through it.
+**GitHub**: https://github.com/dperegolise/justwispr
 
 ---
 

@@ -4,7 +4,7 @@ An MCP server that gives Claude (or any MCP client) real web-scraping capability
 HTTP, headless-browser rendering, CSS/XPath extraction, link discovery, site crawling, and
 screenshots — as nine typed tools.
 
-**Source**: private repo — happy to walk through it.
+**GitHub**: https://github.com/dperegolise/scraper-mcp
 
 ---
 

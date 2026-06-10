@@ -4,7 +4,7 @@ Claude-assisted administration of a remote Linux VPS under a strict observabilit
 + server-enforced contract. Every command the agent runs is watched live, archived to a
 git audit trail, and gated by a server-side whitelist it cannot bypass.
 
-**Source**: private repo — happy to walk through it.
+**GitHub**: https://github.com/dperegolise/claude-sysadmin
 
 ---
 
