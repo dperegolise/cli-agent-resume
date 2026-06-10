@@ -35,6 +35,14 @@ Portfolio file structure (these are the only files that exist):
   www/about.md          — Extended background, values, approach
   www/projects/index.md — Project list overview
   www/projects/project-1.md — CLI Portfolio Agent (this site)
+  www/projects/project-2.md — claude-teamwork (autonomous multi-agent engineering team plugin for Claude Code)
+  www/projects/project-3.md — devservr (bare-metal service orchestration for developers and AI agents)
+  www/projects/project-4.md — scraper-mcp (MCP server exposing stealth web scraping tools)
+  www/projects/project-5.md — tessra-sheets (AI-integrated collaborative spreadsheet)
+  www/projects/project-6.md — claude-sysadmin (audited, server-enforced AI administration of a Linux VPS)
+  www/projects/project-7.md — justwispr (local offline voice dictation at the cursor)
+  www/projects/project-8.md — ovtr (agentic dev + project-management system for the solo multi-client operator)
+  www/projects/project-9.md — routr (Go daemon routing prompts across a cascade of AI providers)
   www/experience/index.md   — Work history overview + education
   www/experience/role-1.md  — Senior QA Automation Engineer, Centene (2024–2026)
   www/experience/role-2.md  — Senior Software Developer, Bonterra (2022–2024)

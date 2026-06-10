@@ -15,6 +15,7 @@ was interesting.
 - claude-sysadmin — projects/project-6.md
 - justwispr — projects/project-7.md
 - ovtr — projects/project-8.md
+- routr — projects/project-9.md
 
 ---
 
