@@ -15,9 +15,9 @@ production-grade APIs at scale. I care about correctness, observability, and mak
 next engineer's job easier than mine was.
 
 **Links**:
-- GitHub: [github.com/danielperegolise](https://github.com/danielperegolise)
-- LinkedIn: [linkedin.com/in/danielperegolise](https://linkedin.com/in/danielperegolise)
-- Email: [danielperegolise@gmail.com](mailto:danielperegolise@gmail.com)
+- GitHub: https://github.com/danielperegolise
+- LinkedIn: https://linkedin.com/in/danielperegolise
+- Email: danielperegolise@gmail.com
 
 ---
 

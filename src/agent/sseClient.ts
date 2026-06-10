@@ -388,11 +388,16 @@ export class SSEClient {
           this.terminal.writeln('\r\n' + ANSI_DIM + '⚡ ' + label + ANSI_RESET);
         }
 
-        // First-response free-model note
+        // First-response free-model note. Word-wrap to the real column count
+        // so narrow panels don't clip mid-word, and lead with a terminal-style
+        // "tip:" label aligned with the provider line above.
         if (this.responseCount === 0) {
           this.terminal.writeln(
             ANSI_DIM + ANSI_ITALIC +
-            'ℹ  Free models power this agent. If responses seem off, try /model to switch.' +
+            wrapAnsi(
+              'tip: free models power this agent — if responses seem off, try /model to switch.',
+              this.terminal.cols,
+            ) +
             ANSI_RESET,
           );
         }

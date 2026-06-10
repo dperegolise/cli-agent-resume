@@ -12,6 +12,7 @@ import { tags as t } from '@lezer/highlight';
 import { vim, Vim, getCM } from '@replit/codemirror-vim';
 import { marked } from 'marked';
 import { bus, EVENT_TYPES } from '../bus.js';
+import { clickableLinks } from './clickableLinks.js';
 import { loadFile, getDefaultFile } from './fileLoader.js';
 import { PowerlineBar, powerlineBarExtension } from './statusBar.js';
 import { DEFAULT } from '../theme.js';
@@ -89,6 +90,17 @@ const defaultTheme = EditorView.theme(
     '.cm-lineNumbers .cm-gutterElement': { padding: '0 10px 0 8px' },
     '.cm-activeLineGutter': { backgroundColor: 'transparent', color: DEFAULT.colors.ansi[8] },
     '.cm-activeLine':       { backgroundColor: DEFAULT.colors.ansi[0] },
+    // Same affordance as preview links: resting underline in the faint
+    // accent-edge, brightening to the full accent on hover.
+    '.cm-clickable-link': {
+      cursor: 'pointer',
+      textDecoration: 'underline',
+      textDecorationColor: '#3a4048',
+      textUnderlineOffset: '2px',
+    },
+    '.cm-clickable-link:hover': {
+      textDecorationColor: '#9aa5b1',
+    },
     '.cm-scroller':         { overflow: 'auto' },
     '.cm-vim-panel':        { background: DEFAULT.colors.bg, color: DEFAULT.colors.fg, padding: '0 8px', fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', minHeight: '1.4em', borderTop: `1px solid ${DEFAULT.colors.selection}` },
     '.cm-vim-panel input':  { background: 'transparent', color: DEFAULT.colors.fg, fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', outline: 'none', border: 'none', width: '100%' },
@@ -161,6 +173,8 @@ export class VimEditor {
       defaultTheme,
       // Syntax highlighting (must come after the language extension)
       syntaxHighlighting(defaultHighlight),
+      // Detected URLs / emails / portfolio paths are clickable in the source
+      clickableLinks,
       // Status bar updater
       powerlineBarExtension(this.statusBar),
       // Line wrapping
@@ -209,8 +223,15 @@ export class VimEditor {
       if (!target) return;
       e.preventDefault();
       const href = target.getAttribute('href') ?? '';
-      if (!href || href.startsWith('http://') || href.startsWith('https://')) {
-        if (href) window.open(href, '_blank', 'noopener');
+      if (!href) return;
+      // Any scheme'd URI (http, https, mailto, …) is external — only bare
+      // relative paths are internal portfolio navigation.
+      if (/^[a-z][a-z0-9+.-]*:/i.test(href)) {
+        if (href.startsWith('mailto:')) {
+          window.location.href = href;
+        } else {
+          window.open(href, '_blank', 'noopener');
+        }
         return;
       }
       // Internal link — resolve relative paths against the current file's directory

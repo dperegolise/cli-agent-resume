@@ -67,7 +67,7 @@ export interface FocusFileEvent {
   /** Optional line to scroll to. */
   lineNumber?: number;
   /** Which panel triggered the navigation. */
-  triggerSource: 'agent' | 'cli' | 'explorer';
+  triggerSource: 'agent' | 'cli' | 'explorer' | 'editor' | 'preview';
 }
 
 /** Emitted when the active theme changes. */

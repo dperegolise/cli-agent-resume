@@ -92,11 +92,13 @@ export class AgentTerminal {
    * Should be called once after construction.
    */
   mount(element: HTMLElement): void {
-    // Wrap in a padded inner div so xterm's canvas has breathing room.
-    // FitAddon measures the wrapper, so the padding naturally reduces the
-    // column count and causes long lines to wrap earlier.
+    // Wrap in an inset inner div so xterm's canvas has breathing room.
+    // The gap must be inset offsets, NOT padding: FitAddon reads the
+    // wrapper's computed width, which under border-box includes padding —
+    // that overstates the columns and clips the last characters at the
+    // right edge.
     const wrapper = element.ownerDocument.createElement('div');
-    wrapper.style.cssText = 'position:absolute;inset:0;padding:10px 16px 10px 14px;box-sizing:border-box;';
+    wrapper.style.cssText = 'position:absolute;top:10px;bottom:10px;left:14px;right:16px;';
     element.appendChild(wrapper);
     this.term.open(wrapper);
 
