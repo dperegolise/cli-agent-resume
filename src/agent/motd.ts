@@ -49,7 +49,7 @@ export function printMOTD(terminal: AgentTerminal, _sseClient: SSEClient): void 
   // ── Header: colored tagline ──────────────────────────────────────────────
   // Tagline visible width: "daniel peregolise  ·  ai/ml  ·  systems" = 40 chars
   ln();
-  ln(`  ${B}${G7}daniel peregolise${R}  ${D}${GR}·${R}  ${CY}ai/ml${R}  ${D}${GR}·${R}  ${GN}systems${R}`);
+  ln(`  ${B}${YL}daniel peregolise${R}  ${D}·${R}  ${CY}ai/ml${R}  ${D}·${R}  ${GN}systems${R}`);
   ln(`   ${AQ}${'─'.repeat(36)}${R}`);
   ln();
 
@@ -60,15 +60,15 @@ export function printMOTD(terminal: AgentTerminal, _sseClient: SSEClient): void 
   //   Row 2: 6 + "gpt-oss-120b"(12) + 16 = 34
 
   const boxW  = 34;
-  const tl    = `${D}${AQ}╭${'─'.repeat(boxW)}╮${R}`;
-  const bl    = `${D}${AQ}╰${'─'.repeat(boxW)}╯${R}`;
-  const side  = `${D}${AQ}│${R}`;
+  const tl    = `${D}╭${'─'.repeat(boxW)}╮${R}`;
+  const bl    = `${D}╰${'─'.repeat(boxW)}╯${R}`;
+  const side  = `${D}│${R}`;
   const icon  = `${B}${G4}◆${G6}◆${R}`;
 
   // Row 1: 2 + 2 + 2 + 15 + 4 + 6 + 3 = 34
-  const row1 = `  ${icon}  ${B}${WH}Portfolio Agent${R}    ${D}${GR}v1.2.4${R}   `;
+  const row1 = `  ${icon}  ${B}${WH}Portfolio Agent${R}    ${D}v1.2.4${R}   `;
   // Row 2: 6 + 12 + 16 = 34
-  const row2 = `      ${D}${GR}gpt-oss-120b${R}                `;
+  const row2 = `      ${D}gpt-oss-120b${R}                `;
 
   ln(`   ${tl}`);
   ln(`   ${side}${row1}${side}`);
@@ -93,4 +93,4 @@ export function printMOTD(terminal: AgentTerminal, _sseClient: SSEClient): void 
 }
 
 // Suppress unused — kept for palette reference
-void [B, D, AM, RD];
+void [B, D, AM, RD, G7, GR];

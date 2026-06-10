@@ -20,17 +20,17 @@ import type { FocusFileEvent } from '../types.js';
 // ─── Default theme syntax highlight style ────────────────────────────────────
 
 const gruvboxHighlight = HighlightStyle.define([
-  // Headings: teal → blue → green by level (all cool tones, matching the palette)
-  { tag: t.heading1,       color: '#4dbdcb', fontWeight: 'bold' },
-  { tag: t.heading2,       color: '#5eacd3', fontWeight: 'bold' },
-  { tag: t.heading3,       color: '#5faf87', fontWeight: 'bold' },
-  { tag: t.heading,        color: '#5eacd3', fontWeight: 'bold' },
+  // Headings: yellow → bright-cyan → bright-green (ANSI 11 → 14 → 10)
+  { tag: t.heading1,       color: '#e0bc7a', fontWeight: 'bold' },
+  { tag: t.heading2,       color: '#63cddb', fontWeight: 'bold' },
+  { tag: t.heading3,       color: '#73c99d', fontWeight: 'bold' },
+  { tag: t.heading,        color: '#63cddb', fontWeight: 'bold' },
   // Emphasis / strong
   { tag: t.emphasis,       color: '#9b84c2', fontStyle: 'italic' },
   { tag: t.strong,         color: '#dde1e8', fontWeight: 'bold' },
   // Links
-  { tag: t.link,           color: '#4dbdcb', textDecoration: 'underline' },
-  { tag: t.url,            color: '#4dbdcb' },
+  { tag: t.link,           color: '#73c99d', textDecoration: 'underline' },
+  { tag: t.url,            color: '#73c99d' },
   // Code
   { tag: t.monospace,      color: '#4dbdcb', fontFamily: "'JetBrains Mono', monospace" },
   { tag: t.contentSeparator, color: '#3d4351' },
