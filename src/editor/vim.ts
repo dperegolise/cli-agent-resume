@@ -21,7 +21,7 @@ import type { FocusFileEvent } from '../types.js';
 
 const gruvboxHighlight = HighlightStyle.define([
   // Headings: yellow → bright-cyan → bright-green (ANSI 11 → 14 → 10)
-  { tag: t.heading1,       color: '#e0bc7a', fontWeight: 'bold' },
+  { tag: t.heading1,       color: '#d79921', fontWeight: 'bold' },
   { tag: t.heading2,       color: '#73c99d', fontWeight: 'bold' },
   { tag: t.heading3,       color: '#73c99d', fontWeight: 'bold' },
   { tag: t.heading,        color: '#73c99d', fontWeight: 'bold' },
