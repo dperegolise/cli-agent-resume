@@ -6,6 +6,8 @@
 
 A CLI-aesthetic browser-based portfolio with a tmux-style panel layout: an AI agent shell on the left (full height), a NERDTree file explorer (top) over a CodeMirror Vim editor (bottom) on the right, and a collapsible CLI terminal along the bottom. Powered by a FastAPI/LangChain backend with a model cascade and a co-located routr proxy. Ships with a switchable theme system (`theme` command) — the default is a custom desaturated-steel palette, with Gruvbox, Nord, Tokyo Night, Dracula, and others selectable.
 
+![The portfolio homepage — agent shell, NERDTree explorer, Vim editor, and CLI drawer](screenshots/homepage.png)
+
 ---
 
 ## Running locally
@@ -236,6 +238,14 @@ www/            portfolio content (.md files, served as static + indexed)
 **Model cascade**: every agent request tries OpenRouter first (free-tier models), falls back to HuggingFace, then falls back to routr. If all three fail, a structured SSE `error` event is returned. routr is a completions-only proxy — `tools` and `tool_choice` fields are **never** forwarded to it (hard-asserted with `assert tools is None` before the HTTP call).
 
 **Cross-panel events**: the `EventBus` (`src/bus.ts`) connects the panels. `FOCUS_FILE` events from the agent shell or CLI drawer cause the NERDTree explorer and Vim editor to navigate to and display the file. `THEME_CHANGE` events from the CLI `theme` command update all panels simultaneously across all bundled themes.
+
+The agent answers from the portfolio content and emits `focus_item` events as it goes — here it's asked about work experience, lists the source files it pulled from, and renders the result inline:
+
+![The AI agent answering a question and citing the portfolio files it drew from](screenshots/agent-sidebar.png)
+
+The `theme` command swaps the palette across every panel at once (here switching to Dracula); the editor also toggles between rendered-preview and raw-source views:
+
+![Switching themes from the CLI drawer — the whole UI recolors live](screenshots/themes.png)
 
 **Rate limiting**: 20 requests per IP per 60-second sliding window. On breach, the IP is banned for 24 hours. The ban timestamp is returned in the `X-Client-Banned-Until` response header and stored in `localStorage` so the browser shows a friendly message without hitting the server again.
 

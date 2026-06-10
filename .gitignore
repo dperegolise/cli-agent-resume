@@ -20,8 +20,11 @@ reference-repos/
 # Resume source document (not published)
 Daniel_Peregolise_Resume.pdf
 
-# Screenshots from automated runs
-screenshots/
+# Screenshots from automated runs are ignored, but the curated README images are kept
+screenshots/*
+!screenshots/homepage.png
+!screenshots/agent-sidebar.png
+!screenshots/themes.png
 
 # Teamwork runtime artifacts (volatile — keep illustrative reports/strategy/handoff, ignore live plumbing)
 .teamwork/heartbeats/
