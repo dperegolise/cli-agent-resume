@@ -4,7 +4,7 @@ Senior Software Developer
 **Aug 2022 – Mar 2024** | Remote
 
 Bonterra builds software for nonprofit social-good workflows. I maintained a
-grant-management platform across the full stack — PL/SQL data layer, Java services, and a
+grant-management platform across the full stack: PL/SQL data layer, Java services, and a
 React frontend.
 
 ---
@@ -14,8 +14,8 @@ React frontend.
 **Core business logic**: Led the rewrite of the external gift controller and core business
 logic in Java.
 
-**Gift redirection & batching**: Built a client-facing gift-redirection system — React
-frontend plus a nightly PL/SQL job for redirecting donations between nonprofits — and the
+**Gift redirection & batching**: Built a client-facing gift-redirection system (a React
+frontend plus a nightly PL/SQL job for redirecting donations between nonprofits) and the
 gift-batching system, with multi-currency support and granular grant-request status
 tracking.
 

@@ -1,6 +1,6 @@
 # Contact
 
-I'm selectively open to interesting conversations — not recruiting calls, but real ones.
+I'm selectively open to interesting conversations. Not recruiting calls, but real ones.
 
 ---
 
@@ -16,10 +16,10 @@ potential collaborations. I respond to well-framed messages, usually within a fe
 ## Other channels
 
 **GitHub**: https://github.com/dperegolise
-— open issues and pull requests on public repos are welcome.
+Open issues and pull requests on public repos are welcome.
 
 **LinkedIn**: https://linkedin.com/in/daniel-peregolise
-— I keep this updated but don't check it frequently. Email is faster.
+I keep this updated but don't check it frequently. Email is faster.
 
 **Website**: https://peregolise.com
 

@@ -6,7 +6,7 @@ description: Senior Full-Stack Software Developer
 
 # Daniel Peregolise
 
-**Senior Full-Stack Software Developer** — Oracle PL/SQL and Java/Spring, paired with
+**Senior Full-Stack Software Developer.** Oracle PL/SQL and Java/Spring, paired with
 modern frontend work in React and Vue.
 
 ---

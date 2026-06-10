@@ -7,14 +7,14 @@ modern frontend development in React and Vue.
 
 I got into engineering sideways. Working as a number portability analyst at Syniverse, I
 taught myself PHP and built an automation system that eliminated an estimated 12% of the
-service center's manual workload — which turned into a developer seat. The years since
+service center's manual workload, which turned into a developer seat. The years since
 have run through big-data analytics for the four major U.S. mobile carriers, consulting, a
 two-billion-row pricing migration in retail, grant management for nonprofits, and
 medical-claim test platforms in healthcare.
 
-The through-line is modernization: replacing legacy systems, migrating very large
+Most of it has been modernization: replacing legacy systems, migrating very large
 datasets, automating mission-critical workflows, and guiding Agile teams from concept to
-production — as a technical lead and Scrum Master as often as an individual contributor.
+production. I've done that as a technical lead and Scrum Master as often as an individual contributor.
 
 ---
 

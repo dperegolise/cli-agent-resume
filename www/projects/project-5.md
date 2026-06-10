@@ -15,8 +15,8 @@ server without trusting it:
 
 - **Live observability**: every command Claude runs on the box appears in a shared remote
   tmux session the human can watch in real time.
-- **Total audit**: every command — the command string, captured output, and the agent's
-  stated rationale — is committed to a git audit repo on the VPS. One command = one
+- **Total audit**: every command (the command string, captured output, and the agent's
+  stated rationale) is committed to a git audit repo on the VPS. One command = one
   commit, so the admin history is diffable, blameable, and tamper-evident.
 - **Three-layer enforcement**: client-side settings deny raw `ssh`/`scp`; a `claude-run`
   wrapper is the only permitted path; and a server-side gate bound to a dedicated
@@ -30,14 +30,14 @@ pane, so what it reasons about is exactly what was captured for the audit.
 
 ## Why I built it
 
-I wanted Claude doing real ops work on a real VPS — nginx configs, certificate renewals,
-service debugging — but "give the agent root and hope" is not a security posture.
+I wanted Claude doing real ops work on a real VPS (nginx configs, certificate renewals,
+service debugging), but "give the agent root and hope" is not a security posture.
 The insight is that the interesting controls are *server-side*: client configuration is
 advisory (the agent could be confused or prompted into ignoring it), but a forced command
 on a restricted SSH key is physics. The client-side denials exist for ergonomics; the gate
 exists for safety.
 
-It's host-agnostic by design — nothing about the site layout or services is baked in; the
+It's host-agnostic by design. Nothing about the site layout or services is baked in; the
 agent discovers the box at use-time like any new sysadmin would.
 
 ---

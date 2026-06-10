@@ -3,7 +3,7 @@ Software Developer
 
 **Jul 2011 – Aug 2014** | Tampa, FL
 
-Three roles across three teams — and where I taught myself to code professionally.
+Three roles across three teams, and where I taught myself to code professionally.
 
 ---
 
