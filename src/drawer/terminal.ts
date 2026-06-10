@@ -39,6 +39,7 @@ export class CLITerminal {
   private term: Terminal;
   private fitAddon: FitAddon;
   private lineBuffer = '';
+  private cursorPos = 0; // index into lineBuffer where the cursor sits
   private resizeObserver: ResizeObserver | null = null;
   private unsubscribeTheme: (() => void) | null = null;
 
@@ -93,9 +94,11 @@ export class CLITerminal {
   }
 
   private async handleData(data: string): Promise<void> {
+    // Ctrl-C
     if (data === '\x03') {
       this.term.write('^C');
       this.lineBuffer = '';
+      this.cursorPos = 0;
       resetCompletion();
       resetCursor('');
       this.term.writeln('');
@@ -103,18 +106,36 @@ export class CLITerminal {
       return;
     }
 
+    // Backspace — delete char before cursor
     if (data === '\x7f' || data === '\b') {
-      if (this.lineBuffer.length > 0) {
-        this.lineBuffer = this.lineBuffer.slice(0, -1);
-        this.term.write('\b \b');
+      if (this.cursorPos > 0) {
+        this.lineBuffer =
+          this.lineBuffer.slice(0, this.cursorPos - 1) +
+          this.lineBuffer.slice(this.cursorPos);
+        this.cursorPos--;
+        this.redrawLine();
         resetCompletion();
       }
       return;
     }
 
+    // Delete key — delete char after cursor
+    if (data === '\x1b[3~') {
+      if (this.cursorPos < this.lineBuffer.length) {
+        this.lineBuffer =
+          this.lineBuffer.slice(0, this.cursorPos) +
+          this.lineBuffer.slice(this.cursorPos + 1);
+        this.redrawLine();
+        resetCompletion();
+      }
+      return;
+    }
+
+    // Enter
     if (data === '\r' || data === '\n') {
       const input = this.lineBuffer;
       this.lineBuffer = '';
+      this.cursorPos = 0;
       resetCompletion();
       resetCursor('');
       this.term.writeln('');
@@ -127,14 +148,16 @@ export class CLITerminal {
       return;
     }
 
+    // Tab completion
     if (data === '\t') {
       const result = tabComplete(this.lineBuffer);
       switch (result.type) {
         case 'single':
         case 'cycle':
-          this.clearLine();
           this.lineBuffer = result.completed;
-          this.term.write(result.completed);
+          this.cursorPos = this.lineBuffer.length;
+          this.clearLine();
+          this.term.write(this.lineBuffer);
           break;
         case 'multiple':
           this.term.writeln('');
@@ -149,23 +172,88 @@ export class CLITerminal {
       return;
     }
 
+    // Arrow up — history prev
     if (data === '\x1b[A') {
       const prev = historyUp(this.lineBuffer);
-      if (prev !== null) { this.clearLine(); this.lineBuffer = prev; this.term.write(prev); }
+      if (prev !== null) {
+        this.lineBuffer = prev;
+        this.cursorPos = prev.length;
+        this.clearLine();
+        this.term.write(prev);
+      }
       return;
     }
+    // Arrow down — history next
     if (data === '\x1b[B') {
       const next = historyDown();
-      if (next !== null) { this.clearLine(); this.lineBuffer = next; this.term.write(next); }
+      if (next !== null) {
+        this.lineBuffer = next;
+        this.cursorPos = next.length;
+        this.clearLine();
+        this.term.write(next);
+      }
       return;
     }
+    // Arrow left — move cursor back
+    if (data === '\x1b[D') {
+      if (this.cursorPos > 0) {
+        this.cursorPos--;
+        this.term.write('\x1b[D');
+      }
+      return;
+    }
+    // Arrow right — move cursor forward
+    if (data === '\x1b[C') {
+      if (this.cursorPos < this.lineBuffer.length) {
+        this.cursorPos++;
+        this.term.write('\x1b[C');
+      }
+      return;
+    }
+    // Home / Ctrl-A — jump to start
+    if (data === '\x1b[H' || data === '\x01') {
+      if (this.cursorPos > 0) {
+        this.term.write(`\x1b[${this.cursorPos}D`);
+        this.cursorPos = 0;
+      }
+      return;
+    }
+    // End / Ctrl-E — jump to end
+    if (data === '\x1b[F' || data === '\x05') {
+      const remaining = this.lineBuffer.length - this.cursorPos;
+      if (remaining > 0) {
+        this.term.write(`\x1b[${remaining}C`);
+        this.cursorPos = this.lineBuffer.length;
+      }
+      return;
+    }
+
+    // Ignore other escape sequences
     if (data.startsWith('\x1b')) return;
 
+    // Printable character — insert at cursor position
     if (data.length === 1 && data.charCodeAt(0) >= 32) {
       resetCompletion();
-      this.lineBuffer += data;
-      this.term.write(data);
+      this.lineBuffer =
+        this.lineBuffer.slice(0, this.cursorPos) +
+        data +
+        this.lineBuffer.slice(this.cursorPos);
+      this.cursorPos++;
+      this.redrawLine();
     }
+  }
+
+  /** Redraw the line in-place and reposition the terminal cursor. */
+  private redrawLine(): void {
+    const charsFromEnd = this.lineBuffer.length - this.cursorPos;
+    // Move to start of input, overwrite with updated buffer, clear any leftover
+    // chars, then move cursor back to its logical position.
+    this.term.write(
+      '\r\x1b[K' +           // CR + erase to end of line
+      PROMPT +               // re-draw prompt
+      this.lineBuffer +      // re-draw buffer
+      (charsFromEnd > 0 ? `\x1b[${charsFromEnd}D` : ''), // reposition
+    );
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -175,9 +263,12 @@ export class CLITerminal {
   }
 
   private clearLine(): void {
+    // Move cursor back to end then erase — simpler than tracking from cursorPos
+    const charsFromEnd = this.lineBuffer.length - this.cursorPos;
+    if (charsFromEnd > 0) this.term.write(`\x1b[${charsFromEnd}C`);
     const len = this.lineBuffer.length;
-    if (len === 0) return;
-    this.term.write('\b'.repeat(len) + ' '.repeat(len) + '\b'.repeat(len));
+    if (len > 0) this.term.write('\b'.repeat(len) + ' '.repeat(len) + '\b'.repeat(len));
+    this.cursorPos = 0;
   }
 
   private readonly _onWindowResize = (): void => {

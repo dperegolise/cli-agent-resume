@@ -547,6 +547,7 @@ export async function initFileExplorerPanel(element: HTMLElement): Promise<FileE
   const manifest = await loadManifest();
   const explorer = new FileExplorer();
   explorer.render(element, manifest);
+  explorer.highlight('index.md');
   return explorer;
 }
 
