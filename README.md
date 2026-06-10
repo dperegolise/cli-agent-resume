@@ -1,6 +1,6 @@
 # cli-agent-resume
 
-> See ![www/index.md](www/index.md) for my resume.
+> See [www/index.md](www/index.md) for my resume.
 > Feel free to clone and reuse.
 
 A CLI-aesthetic browser-based portfolio with a tmux-style panel layout: an AI agent shell on the left (full height), a NERDTree file explorer (top) over a CodeMirror Vim editor (bottom) on the right, and a collapsible CLI terminal along the bottom. Powered by a FastAPI/LangChain backend with a model cascade and a co-located routr proxy. Ships with a switchable theme system (`theme` command) — the default is a custom desaturated-steel palette, with Gruvbox, Nord, Tokyo Night, Dracula, and others selectable.
