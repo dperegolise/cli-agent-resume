@@ -1,61 +1,74 @@
-# justwispr
+# ovtr
 
-Voice dictation at your cursor. Press a hotkey, speak, press again — your words appear as
-text in whatever app has focus. Fully local: faster-whisper on your own hardware, no cloud
-services, no API keys, no network.
+An agentic software-development and project-management system for the solo operator
+running many client projects on one machine. You compose work as flow-graphs;
+scope-bounded agents execute in isolated git worktrees; a unified memory fabric remembers
+your whole portfolio — with hard confidentiality walls between clients.
 
-**Source**: private repo — happy to walk through it.
+**Source**: private for now
 
 ---
 
 ## What it is
 
-A Windows tray application for system-wide voice dictation:
+The agent-tooling landscape splits into amnesiac single-session assistants and
+heavyweight multi-agent cloud platforms built for organizations. ovtr is built for the gap
+between them — one developer, many clients, one machine:
 
-- **Global hotkey** (default `Ctrl+Alt+Space`) toggles recording from anywhere.
-- **Local speech-to-text** via [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
-  — offline, private, and fast enough to feel instant on a GPU.
-- **Clipboard injection**: transcribed text is pasted at the cursor, with the previous
-  clipboard contents saved and restored so dictation never clobbers what you were copying.
-- **Tray state machine**: the icon color tells you exactly what's happening — idle,
-  recording, transcribing, paused.
-- **Post-processing pipeline**: configurable text replacements, formatting, segment
-  handling, and a transcription history; speaker diarization for transcribing audio files.
-
-A PowerShell installer sets up an isolated venv, installs dependencies, and generates
-launchers (including a hidden-console one for everyday use).
+- **The fabric**: one Postgres store for everything the system *knows* — a containment
+  tree (Operator → Client → Suite → Project → Repo → Module), skills, agent definitions,
+  ingested documents, and a temporal knowledge graph that tracks how things change.
+- **Flow-graphs**: the agent lifecycle (provision worktree → run worker → open PR → tear
+  down) is decomposed into composable nodes, so standard tasks wire up in one move and
+  non-standard flows are just different wiring.
+- **Scope-bounded agents**: every agent runs with an explicit read/write scope in its own
+  worktree; its changes arrive as reviewable pull requests. Two execution backends — a
+  direct model API or a driven Claude Code session — behind one uniform loop.
+- **The director**: a persistent, self-curating assistant with tiered memory that
+  consolidates, promotes, and *retracts* beliefs rather than just accumulating them.
+- **A confidence gate**: a deterministic function — not a prompt — decides whether an
+  action runs autonomously, is proposed for review, or escalates. Anything that modifies
+  the system's own behavior routes to review by construction.
 
 ---
 
 ## Why I built it
 
-Commercial dictation tools ship your voice to someone's cloud and charge a subscription
-for it. Whisper made local transcription genuinely good; the missing piece was the *last
-inch* — getting audio from a hotkey press into a model and the text back under your cursor
-without friction. That last inch turns out to be where all the engineering lives:
-clipboard etiquette, focus handling, audio device management, and a state machine that
-never leaves the mic silently hot.
+I'm the operator it describes: many clients and projects on one box, needing durable
+memory that respects client boundaries. Existing tools made me choose between an assistant
+that forgets everything at session end and a platform that wants to be autonomous. ovtr's
+core bet is that for a solo operator, **autonomy is earned, not assumed** — build the
+rails (locks, gates, review tiers) first, and turn on the engine deliberately once the
+user-driven system has proven itself.
 
-I dictate into editors, chat windows, and code review boxes with it daily, which is the
-best QA regime a tool can have.
+The hardest design problem was scoping: client confidentiality is enforced in the
+authorization code path, not by convention, so one client's knowledge can never reach
+another's agents regardless of how a graph is wired.
 
 ---
 
 ## Technical decisions worth noting
 
-**Clipboard paste over keystroke synthesis**: injecting via clipboard + paste is far more
-reliable across applications than simulating keystrokes, and saving/restoring the
-clipboard makes it polite.
+**Behavior lives in one of three places, chosen by a clear test**: run it identically
+every time → an orchestrator graph; let the model adapt it → a skill; it's a hot path or
+safety-critical → code. Graphs may load skills; skills may *recommend* graphs but can
+never author or fire one — learned writes never reach deterministic execution.
 
-**Local-only as a hard constraint, not a mode**: there is no cloud fallback to leak into.
-Model size and compute type are the tuning knobs instead.
+**Knowledge in a database, not scattered markdown**: skills, guidance, and memory are
+versioned, queryable, scope-inherited records in the fabric. Markdown is an interchange
+format, not the store — which is what makes knowledge shareable across projects and
+retrievable semantically.
 
-**Tray-first UX**: no window to manage. The entire interface is a hotkey and an icon color
-— dictation should be ambient, not an app you switch to.
+**Honest measurement as a safety property**: a task that ran but produced nothing is never
+recorded as a success. A corrupted record of "what worked" poisons everything a learning
+system does downstream.
+
+**Borrow patterns, not frameworks**: every subsystem traces to a known frontier pattern,
+deliberately re-implemented to fit a single-machine, single-operator, multi-client world.
 
 ---
 
 ## Stack
 
-Python, faster-whisper, Win32 APIs (clipboard, system sounds, tray), sounddevice audio
-capture, pystray-style tray UI, PowerShell installer
+Postgres (memory fabric + temporal knowledge graph + operational schemas), Python,
+TypeScript/React shell, git worktrees, MCP, its own model router (see routr)

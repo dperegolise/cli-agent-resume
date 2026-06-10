@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-06-10T15:16:57.816Z",
+  "recorded_at": "2026-06-10T20:02:47.572Z",
   "event": "SessionStart-startup",
   "top_level_keys": [
     "session_id",
@@ -10,11 +10,11 @@
     "model"
   ],
   "payload": {
-    "session_id": "d3d570f0-297a-48b8-b31e-ac5df253006f",
-    "transcript_path": "/home/daniel/.claude/projects/-home-daniel-src-cli-agent-resume/d3d570f0-297a-48b8-b31e-ac5df253006f.jsonl",
+    "session_id": "49971dd2-6cd8-4e8f-9f1b-a69e52d4b402",
+    "transcript_path": "/home/daniel/.claude/projects/-home-daniel-src-cli-agent-resume/49971dd2-6cd8-4e8f-9f1b-a69e52d4b402.jsonl",
     "cwd": "/home/daniel/src/cli-agent-resume",
     "hook_event_name": "SessionStart",
     "source": "startup",
-    "model": "claude-opus-4-8"
+    "model": "claude-sonnet-4-6"
   }
 }

@@ -1,74 +1,72 @@
-# ovtr
+# routr
 
-An agentic software-development and project-management system for the solo operator
-running many client projects on one machine. You compose work as flow-graphs;
-scope-bounded agents execute in isolated git worktrees; a unified memory fabric remembers
-your whole portfolio — with hard confidentiality walls between clients.
+A single-binary Go daemon that routes prompts through a cascade of ten AI providers,
+streams responses over SSE, manages live CLI-agent terminal sessions in tmux, and ships
+its own React playground embedded in the binary. It's the model router behind ovtr — and
+the fallback backend for the agent on this site.
 
-**Source**: private for now
+**GitHub**: https://github.com/dperegolise/routr
 
 ---
 
 ## What it is
 
-The agent-tooling landscape splits into amnesiac single-session assistants and
-heavyweight multi-agent cloud platforms built for organizations. ovtr is built for the gap
-between them — one developer, many clients, one machine:
+One daemon (`provrtr`) that unifies every way of talking to a model:
 
-- **The fabric**: one Postgres store for everything the system *knows* — a containment
-  tree (Operator → Client → Suite → Project → Repo → Module), skills, agent definitions,
-  ingested documents, and a temporal knowledge graph that tracks how things change.
-- **Flow-graphs**: the agent lifecycle (provision worktree → run worker → open PR → tear
-  down) is decomposed into composable nodes, so standard tasks wire up in one move and
-  non-standard flows are just different wiring.
-- **Scope-bounded agents**: every agent runs with an explicit read/write scope in its own
-  worktree; its changes arrive as reviewable pull requests. Two execution backends — a
-  direct model API or a driven Claude Code session — behind one uniform loop.
-- **The director**: a persistent, self-curating assistant with tiered memory that
-  consolidates, promotes, and *retracts* beliefs rather than just accumulating them.
-- **A confidence gate**: a deterministic function — not a prompt — decides whether an
-  action runs autonomously, is proposed for review, or escalates. Anything that modifies
-  the system's own behavior routes to review by construction.
+- **Multi-provider routing**: a single `POST /api/completions/stream` fans out across 3
+  CLI wrappers (Claude Code, Codex, Gemini) and 7 HTTP APIs (OpenAI, Google, OpenRouter,
+  Groq, Hugging Face, Ollama, …). A "cascade" sends the prompt down a ranked provider list
+  and returns the first success.
+- **Managed terminal sessions**: the `claude_cli` provider launches Claude Code inside a
+  tmux session, detects idle/processing state from scrollback, and extracts structured
+  conversations. Sessions survive daemon restarts; the daemon reconciles on startup.
+- **Inter-agent messaging**: a Postgres-backed inbox delivers messages between terminals
+  and API sessions when the receiver goes idle, retried by a watchdog.
+- **Activity logging + search**: every completion emits events persisted to Postgres and
+  broadcast over SSE; tsvector + GIN full-text search across all agent activity.
+- **Tool sandbox**: built-in tools (think, files, search, shell) run in a sandboxed
+  directory with denylist and symlink checks; MCP bridge tools merge into the same list.
+- **The rest**: an MCP server endpoint, a WebSocket bridge to any managed terminal's PTY,
+  an OpenAI-compatible proxy, and an embedded React playground via `//go:embed`.
 
 ---
 
 ## Why I built it
 
-I'm the operator it describes: many clients and projects on one box, needing durable
-memory that respects client boundaries. Existing tools made me choose between an assistant
-that forgets everything at session end and a platform that wants to be autonomous. ovtr's
-core bet is that for a solo operator, **autonomy is earned, not assumed** — build the
-rails (locks, gates, review tiers) first, and turn on the engine deliberately once the
-user-driven system has proven itself.
+Running many agents on one machine means many model backends — paid APIs, free tiers,
+local Ollama, and CLI subscriptions that are effectively prepaid compute. I wanted one
+endpoint where the *caller* stops caring which backend answers: cascade through the cheap
+and local options first, fall back to paid APIs, and treat a Claude Code session in tmux
+as just another provider. That last idea — terminal sessions as first-class routable
+providers, with state detection and conversation extraction — is the unusual part, and it
+turns a CLI subscription into programmable infrastructure.
 
-The hardest design problem was scoping: client confidentiality is enforced in the
-authorization code path, not by convention, so one client's knowledge can never reach
-another's agents regardless of how a graph is wired.
+It started as the completions proxy for this portfolio's agent and grew into ovtr's
+model-access layer.
 
 ---
 
 ## Technical decisions worth noting
 
-**Behavior lives in one of three places, chosen by a clear test**: run it identically
-every time → an orchestrator graph; let the model adapt it → a skill; it's a hot path or
-safety-critical → code. Graphs may load skills; skills may *recommend* graphs but can
-never author or fire one — learned writes never reach deterministic execution.
+**Single binary, embedded UI**: Go + `//go:embed` means deploy-by-copy. The playground,
+the API, the MCP server, and the terminal manager are one artifact.
 
-**Knowledge in a database, not scattered markdown**: skills, guidance, and memory are
-versioned, queryable, scope-inherited records in the fabric. Markdown is an interchange
-format, not the store — which is what makes knowledge shareable across projects and
-retrievable semantically.
+**Ephemeral conversations, durable operations**: conversation history is deliberately not
+persisted server-side (the playground keeps its own in `localStorage`); sessions,
+terminals, inbox messages, and activity events live in Postgres. State that must survive a
+restart does; state that shouldn't accumulate doesn't.
 
-**Honest measurement as a safety property**: a task that ran but produced nothing is never
-recorded as a success. A corrupted record of "what worked" poisons everything a learning
-system does downstream.
+**Idle detection from scrollback**: knowing when a CLI agent is *done* is the hard problem
+in driving terminals programmatically. The watchdog polls captured pane content for
+provider-specific idle signatures, which is also what gates inbox delivery.
 
-**Borrow patterns, not frameworks**: every subsystem traces to a known frontier pattern,
-deliberately re-implemented to fit a single-machine, single-operator, multi-client world.
+**Local-first trust posture**: no auth, binds localhost by default, trusted-LAN by
+explicit choice — it's infrastructure for one operator's machine, stated plainly rather
+than half-secured.
 
 ---
 
 ## Stack
 
-Postgres (memory fabric + temporal knowledge graph + operational schemas), Python,
-TypeScript/React shell, git worktrees, MCP, its own model router (see routr)
+Go 1.25, Postgres (goose migrations, tsvector search), tmux, SSE, WebSockets, MCP,
+React 18 + Vite 5 (embedded via `go:embed`)

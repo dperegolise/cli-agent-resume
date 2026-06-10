@@ -1,8 +1,8 @@
-# claude-sysadmin
+# justwispr
 
-Claude-assisted administration of a remote Linux VPS under a strict observability + audit
-+ server-enforced contract. Every command the agent runs is watched live, archived to a
-git audit trail, and gated by a server-side whitelist it cannot bypass.
+Voice dictation at your cursor. Press a hotkey, speak, press again — your words appear as
+text in whatever app has focus. Fully local: faster-whisper on your own hardware, no cloud
+services, no API keys, no network.
 
 **Source**: private repo — happy to walk through it.
 
@@ -10,54 +10,52 @@ git audit trail, and gated by a server-side whitelist it cannot bypass.
 
 ## What it is
 
-A pattern (and the scripts that implement it) for letting an AI agent administer a real
-server without trusting it:
+A Windows tray application for system-wide voice dictation:
 
-- **Live observability**: every command Claude runs on the box appears in a shared remote
-  tmux session the human can watch in real time.
-- **Total audit**: every command — the command string, captured output, and the agent's
-  stated rationale — is committed to a git audit repo on the VPS. One command = one
-  commit, so the admin history is diffable, blameable, and tamper-evident.
-- **Three-layer enforcement**: client-side settings deny raw `ssh`/`scp`; a `claude-run`
-  wrapper is the only permitted path; and a server-side gate bound to a dedicated
-  restricted SSH key rejects anything outside a tiny whitelist of verbs. The agent
-  physically cannot open an unrestricted shell.
+- **Global hotkey** (default `Ctrl+Alt+Space`) toggles recording from anywhere.
+- **Local speech-to-text** via [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+  — offline, private, and fast enough to feel instant on a GPU.
+- **Clipboard injection**: transcribed text is pasted at the cursor, with the previous
+  clipboard contents saved and restored so dictation never clobbers what you were copying.
+- **Tray state machine**: the icon color tells you exactly what's happening — idle,
+  recording, transcribing, paused.
+- **Post-processing pipeline**: configurable text replacements, formatting, segment
+  handling, and a transcription history; speaker diarization for transcribing audio files.
 
-The agent reads command output from per-command logfiles rather than scraping the tmux
-pane, so what it reasons about is exactly what was captured for the audit.
+A PowerShell installer sets up an isolated venv, installs dependencies, and generates
+launchers (including a hidden-console one for everyday use).
 
 ---
 
 ## Why I built it
 
-I wanted Claude doing real ops work on a real VPS — nginx configs, certificate renewals,
-service debugging — but "give the agent root and hope" is not a security posture.
-The insight is that the interesting controls are *server-side*: client configuration is
-advisory (the agent could be confused or prompted into ignoring it), but a forced command
-on a restricted SSH key is physics. The client-side denials exist for ergonomics; the gate
-exists for safety.
+Commercial dictation tools ship your voice to someone's cloud and charge a subscription
+for it. Whisper made local transcription genuinely good; the missing piece was the *last
+inch* — getting audio from a hotkey press into a model and the text back under your cursor
+without friction. That last inch turns out to be where all the engineering lives:
+clipboard etiquette, focus handling, audio device management, and a state machine that
+never leaves the mic silently hot.
 
-It's host-agnostic by design — nothing about the site layout or services is baked in; the
-agent discovers the box at use-time like any new sysadmin would.
+I dictate into editors, chat windows, and code review boxes with it daily, which is the
+best QA regime a tool can have.
 
 ---
 
 ## Technical decisions worth noting
 
-**Git as the audit log**: free integrity, free tooling, free retention. `git log` over the
-audit repo answers "what did the agent do last Tuesday and why" with no custom
-infrastructure.
+**Clipboard paste over keystroke synthesis**: injecting via clipboard + paste is far more
+reliable across applications than simulating keystrokes, and saving/restoring the
+clipboard makes it polite.
 
-**tmux send-keys as the execution path**: commands run in a pane the human can attach to,
-which turns oversight from "review the logs later" into "watch it happen."
+**Local-only as a hard constraint, not a mode**: there is no cloud fallback to leak into.
+Model size and compute type are the tuning knobs instead.
 
-**Separate keys, separate trust**: the human's unrestricted SSH alias and the agent's
-restricted one are different keys with different server-side treatment. The agent's key
-forces the gate; no flag on the client can undo that.
+**Tray-first UX**: no window to manage. The entire interface is a hotkey and an icon color
+— dictation should be ambient, not an app you switch to.
 
 ---
 
 ## Stack
 
-Bash, SSH forced commands, tmux, git, Claude Code permission settings (deny rules + a
-single wrapped entrypoint)
+Python, faster-whisper, Win32 APIs (clipboard, system sounds, tray), sounddevice audio
+capture, pystray-style tray UI, PowerShell installer

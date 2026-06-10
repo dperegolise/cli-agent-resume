@@ -1,8 +1,8 @@
-# tessra-sheets
+# claude-sysadmin
 
-An AI-integrated collaborative spreadsheet: a Univer-powered grid with a 150-function
-formula engine, real persistence, auth and permissions, and AI woven in as both a sidebar
-(NL-to-formula) and a cell function (`=AI()`).
+Claude-assisted administration of a remote Linux VPS under a strict observability + audit
++ server-enforced contract. Every command the agent runs is watched live, archived to a
+git audit trail, and gated by a server-side whitelist it cannot bypass.
 
 **Source**: private repo — happy to walk through it.
 
@@ -10,53 +10,54 @@ formula engine, real persistence, auth and permissions, and AI woven in as both 
 
 ## What it is
 
-A working spreadsheet application, currently through its MVP phase:
+A pattern (and the scripts that implement it) for letting an AI agent administer a real
+server without trusting it:
 
-- **Grid + formulas**: Univer grid frontend over a custom formula engine implementing 150
-  spreadsheet functions, with undo/redo.
-- **Persistence**: Postgres for structured data, S3-compatible object store for sheet
-  blobs.
-- **Multi-tenancy**: auth, permissions, and an organization/workspace model.
-- **AI layer**: a provider abstraction spanning OpenAI, Anthropic, Google, and Hugging
-  Face; natural-language-to-formula generation; and `=AI()` as a first-class cell function
-  so model output lands *in the grid* like any other computed value.
+- **Live observability**: every command Claude runs on the box appears in a shared remote
+  tmux session the human can watch in real time.
+- **Total audit**: every command — the command string, captured output, and the agent's
+  stated rationale — is committed to a git audit repo on the VPS. One command = one
+  commit, so the admin history is diffable, blameable, and tamper-evident.
+- **Three-layer enforcement**: client-side settings deny raw `ssh`/`scp`; a `claude-run`
+  wrapper is the only permitted path; and a server-side gate bound to a dedicated
+  restricted SSH key rejects anything outside a tiny whitelist of verbs. The agent
+  physically cannot open an unrestricted shell.
 
-It's a pnpm/Turbo monorepo — Next.js web app, Hono API server, and shared packages for
-the sheet core, AI providers, and evals — with strict TypeScript across all nine packages,
-Biome, Vitest, and Playwright smoke tests.
+The agent reads command output from per-command logfiles rather than scraping the tmux
+pane, so what it reasons about is exactly what was captured for the audit.
 
 ---
 
 ## Why I built it
 
-Spreadsheets are the world's most successful end-user programming environment, and
-"AI + spreadsheet" is mostly being done as a chatbot bolted to the side. I wanted to find
-out what it takes to make AI a *native primitive* of the grid — where `=AI("classify",
-A2)` recalculates like `=SUM()` does — and that forces you to solve the real problems:
-dependency tracking through nondeterministic cells, caching and cost control, provider
-failover, and prompt construction from 2-D context.
+I wanted Claude doing real ops work on a real VPS — nginx configs, certificate renewals,
+service debugging — but "give the agent root and hope" is not a security posture.
+The insight is that the interesting controls are *server-side*: client configuration is
+advisory (the agent could be confused or prompted into ignoring it), but a forced command
+on a restricted SSH key is physics. The client-side denials exist for ergonomics; the gate
+exists for safety.
 
-It's also the largest exercise of disciplined monorepo TypeScript I've done solo: nine
-packages, strict mode everywhere, an eval harness for the AI features alongside the unit
-tests.
+It's host-agnostic by design — nothing about the site layout or services is baked in; the
+agent discovers the box at use-time like any new sysadmin would.
 
 ---
 
 ## Technical decisions worth noting
 
-**Univer for the grid, custom engine for formulas**: rendering a spreadsheet is a solved
-problem; owning the formula engine is what makes `=AI()` and NL-to-formula possible
-without fighting someone else's evaluation model.
+**Git as the audit log**: free integrity, free tooling, free retention. `git log` over the
+audit repo answers "what did the agent do last Tuesday and why" with no custom
+infrastructure.
 
-**Provider abstraction from day one**: every AI feature goes through one interface with
-four backends. Model churn is constant; the abstraction is what survives.
+**tmux send-keys as the execution path**: commands run in a pane the human can attach to,
+which turns oversight from "review the logs later" into "watch it happen."
 
-**Evals as a package**: AI features get a dedicated eval suite in the workspace, run like
-tests. "The formula generator seems better" is not a measurement.
+**Separate keys, separate trust**: the human's unrestricted SSH alias and the agent's
+restricted one are different keys with different server-side treatment. The agent's key
+forces the gate; no flag on the client can undo that.
 
 ---
 
 ## Stack
 
-TypeScript (strict), Next.js, Hono, Univer, Postgres, S3-compatible object storage, pnpm
-workspaces, Turbo, Biome, Vitest, Playwright
+Bash, SSH forced commands, tmux, git, Claude Code permission settings (deny rules + a
+single wrapped entrypoint)
