@@ -22,3 +22,8 @@ Daniel_Peregolise_Resume.pdf
 
 # Screenshots from automated runs
 screenshots/
+
+# Teamwork runtime artifacts (volatile — keep illustrative reports/strategy/handoff, ignore live plumbing)
+.teamwork/heartbeats/
+.teamwork/logs/
+.teamwork/state/
