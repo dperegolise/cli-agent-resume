@@ -6,6 +6,41 @@
 
 import type { ThemeConfig, ThemeColors } from './types.js';
 
+// ─── Default ─────────────────────────────────────────────────────────────────
+// Professional dark terminal: charcoal background, slate-grey foreground,
+// single teal accent. Low-saturation ANSI palette — readable without noise.
+
+const defaultColors: ThemeColors = {
+  bg: '#1a1c1e',
+  fg: '#c8ccd4',
+  cursor: '#5eacd3',
+  selection: '#2d3748',
+  ansi: [
+    '#1e2124', // 0  black
+    '#e06c75', // 1  red      — error/danger
+    '#5faf87', // 2  green    — success/ok
+    '#d4a76a', // 3  yellow   — warning/highlight
+    '#5eacd3', // 4  blue     — info/link (matches cursor/accent)
+    '#9b84c2', // 5  magenta  — subtle secondary
+    '#4dbdcb', // 6  cyan     — primary accent
+    '#9ca3af', // 7  white    — normal text
+    '#3d4351', // 8  bright-black (comments/dim)
+    '#f07080', // 9  bright-red
+    '#73c99d', // 10 bright-green
+    '#e0bc7a', // 11 bright-yellow
+    '#7abfe0', // 12 bright-blue
+    '#b09bd4', // 13 bright-magenta
+    '#63cddb', // 14 bright-cyan
+    '#dde1e8', // 15 bright-white
+  ],
+  accentColor: '#4dbdcb', // teal — dividers and structural UI
+};
+
+export const DEFAULT: ThemeConfig = {
+  name: 'default',
+  colors: defaultColors,
+};
+
 // ─── Gruvbox Dark Hard ────────────────────────────────────────────────────────
 
 const gruvboxDarkColors: ThemeColors = {
@@ -306,11 +341,13 @@ export const VSCODE: ThemeConfig = {
 // ─── Theme registry ───────────────────────────────────────────────────────────
 
 export const THEME_NAMES: string[] = [
+  'default',
   'gruvbox-dark', 'nord', 'tokyo-night', 'solarized-dark',
   'dracula', 'github', 'ubuntu', 'jetbrains', 'vscode',
 ];
 
 const THEMES: Record<string, ThemeConfig> = {
+  'default': DEFAULT,
   'gruvbox-dark': GRUVBOX_DARK,
   'nord': NORD,
   'tokyo-night': TOKYO_NIGHT,
@@ -408,7 +445,7 @@ export class ThemeManager {
   private activeTheme: ThemeConfig;
   private listeners: Set<ThemeChangeCallback> = new Set();
 
-  constructor(initialTheme: string = 'gruvbox-dark') {
+  constructor(initialTheme: string = 'default') {
     const theme = THEMES[initialTheme];
     if (!theme) {
       throw new Error(`Unknown theme: ${initialTheme}. Available: ${THEME_NAMES.join(', ')}`);

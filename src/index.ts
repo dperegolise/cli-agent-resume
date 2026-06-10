@@ -23,7 +23,7 @@ import type { ThemeChangeEvent } from './types.js';
 const log = createLogger('index');
 
 /** Shared theme manager instance — passed to all panels. */
-export const themeManager = new ThemeManager('gruvbox-dark');
+export const themeManager = new ThemeManager('default');
 
 /** AgentTerminal singleton (for HMR cleanup). */
 let agentTerminal: AgentTerminal | null = null;
