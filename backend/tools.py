@@ -50,6 +50,10 @@ def focus_item(path: str) -> str:
     if ".." in path or path.startswith("/"):
         return f"Error: invalid path '{path}' — path traversal is not allowed."
 
+    # Strip leading www/ prefix — manifest paths are relative to www/
+    if path.startswith("www/"):
+        path = path[4:]
+
     # Runtime validation against the manifest
     if not manifest_module.validate_path(path):
         return (
@@ -57,4 +61,5 @@ def focus_item(path: str) -> str:
             "Use search_portfolio to find valid paths."
         )
 
-    return f"Successfully navigated to {path}"
+    content = manifest_module.get_content(path)
+    return f"Navigated to {path}\n\n{content}"

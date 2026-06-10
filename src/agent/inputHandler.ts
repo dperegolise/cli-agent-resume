@@ -134,6 +134,12 @@ export class InputHandler {
       }
     }
 
+    // Handle slash commands locally before sending to SSE
+    if (line.trim() === '/model') {
+      this.sseClient.advanceModel();
+      return;
+    }
+
     // Resolve the actual query from quick-action shortcuts
     const resolved = this.resolveInput(line);
 

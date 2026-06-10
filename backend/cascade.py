@@ -118,14 +118,16 @@ def _messages_to_prompt(messages: List[Dict[str, str]]) -> str:
 async def _call_openrouter(
     messages: List[Dict[str, Any]],
     tools: Optional[List[Dict[str, Any]]],
+    skip: int = 0,
 ) -> Dict[str, Any]:
     """
     POST to OpenRouter, trying each model in _openrouter_models() order.
-    Returns the first successful parsed JSON response body.
+    Returns the first successful parsed JSON response body (with _provider/_model injected).
     Raises the last exception if all models fail.
+    skip: number of leading models to skip (for /model advancement).
     """
     key = _openrouter_key()
-    models = _openrouter_models()
+    models = _openrouter_models()[skip:]
     last_exc: Exception = RuntimeError("no OpenRouter models configured")
 
     async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
@@ -160,6 +162,8 @@ async def _call_openrouter(
                     last_exc = RuntimeError(f"{model}: {err_msg}")
                     continue
                 logger.info("cascade: OpenRouter model %s succeeded", model)
+                data["_provider"] = "OpenRouter"
+                data["_model"] = model
                 return data
             except Exception as exc:
                 logger.warning("cascade: OpenRouter model %s failed: %s", model, exc)
@@ -177,6 +181,7 @@ async def _call_huggingface(
     Tries each model in _hf_models() order; raises last exception if all fail.
     Note: free-tier models may not support tool_choice — tools are omitted if
     the model returns a 422/400 indicating unsupported parameters.
+    Returns response with _provider/_model injected.
     """
     key = _hf_key()
     models = _hf_models()
@@ -222,7 +227,10 @@ async def _call_huggingface(
                     )
                 resp.raise_for_status()
                 logger.info("cascade: HuggingFace model %s succeeded", model)
-                return resp.json()
+                data = resp.json()
+                data["_provider"] = "HuggingFace"
+                data["_model"] = model
+                return data
             except Exception as exc:
                 logger.warning("cascade: HuggingFace model %s failed: %s", model, exc)
                 last_exc = exc
@@ -272,6 +280,8 @@ async def _call_routr(
         text = choice.get("text", "") or choice.get("message", {}).get("content", "")
 
     return {
+        "_provider": "routr",
+        "_model": "local",
         "choices": [
             {
                 "message": {"role": "assistant", "content": text},
@@ -285,13 +295,20 @@ async def _call_routr(
 
 # ── Public cascade entrypoint ─────────────────────────────────────────────────
 
+def openrouter_model_count() -> int:
+    """Return the total number of configured OpenRouter models."""
+    return len(_openrouter_models())
+
+
 async def call_with_cascade(
     messages: List[Dict[str, Any]],
     tools: Optional[List[Dict[str, Any]]],
+    openrouter_skip: int = 0,
 ) -> Dict[str, Any]:
     """
     Try providers in order (OpenRouter → HuggingFace → routr).
 
+    openrouter_skip: skip the first N OpenRouter models (for /model advancement).
     For routr: tools are explicitly stripped before the HTTP call.
     Raises RuntimeError if all providers fail.
     """
@@ -300,8 +317,8 @@ async def call_with_cascade(
     # ── Tier 1: OpenRouter ────────────────────────────────────────────────────
     if await _openrouter_available():
         try:
-            logger.info("cascade: trying OpenRouter")
-            return await _call_openrouter(messages, tools)
+            logger.info("cascade: trying OpenRouter (skip=%d)", openrouter_skip)
+            return await _call_openrouter(messages, tools, skip=openrouter_skip)
         except Exception as exc:
             logger.warning("cascade: OpenRouter failed: %s", exc)
             errors.append(f"OpenRouter: {exc}")

@@ -31,7 +31,7 @@ const SPLASH_LINES = [
   '',
 ];
 
-const PROMPT = `\x1b[92mvisitor@portfolio\x1b[0m:\x1b[94m~\x1b[0m$ `;
+const PROMPT = `  \x1b[92mvisitor@portfolio\x1b[0m:\x1b[94m~\x1b[0m$ `;
 
 // ─── CLITerminal ──────────────────────────────────────────────────────────────
 

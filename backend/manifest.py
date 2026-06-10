@@ -130,6 +130,11 @@ def validate_path(path: str) -> bool:
     return path in _entries
 
 
+def get_content(path: str) -> str:
+    """Return full text of *path*, or empty string if not found."""
+    return _contents.get(path, "")
+
+
 def search(query: str) -> List[SearchResult]:
     """
     Simple keyword search over manifest content.

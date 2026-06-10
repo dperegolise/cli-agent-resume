@@ -9,7 +9,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import { toXtermTheme } from '../theme.js';
 import { bus, EVENT_TYPES } from '../bus.js';
-import type { ThemeConfig, ThemeChangeEvent } from '../types.js';
+import type { ThemeConfig, ThemeChangeEvent, FocusFileEvent } from '../types.js';
 import type { ThemeManager } from '../theme.js';
 import type { SSEClient } from './sseClient.js';
 import type { ILinkHandler } from '@xterm/xterm';
@@ -42,6 +42,13 @@ export class AgentTerminal {
             if (this.sseClient) {
               void this.sseClient.sendMessage(query);
             }
+          } catch {
+            // ignore decode errors
+          }
+        } else if (uri.startsWith('agent:focus:')) {
+          try {
+            const path = decodeURIComponent(uri.slice('agent:focus:'.length));
+            bus.emit<FocusFileEvent>(EVENT_TYPES.FOCUS_FILE, { path, triggerSource: 'agent' });
           } catch {
             // ignore decode errors
           }

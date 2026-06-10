@@ -24,6 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+import cascade as cascade_module
 import manifest as manifest_module
 import rate_limiter
 from agent import run_agent
@@ -97,6 +98,11 @@ async def health() -> Dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/cascade/info")
+async def cascade_info() -> Dict[str, Any]:
+    return {"openrouter_model_count": cascade_module.openrouter_model_count()}
+
+
 @app.post("/agent")
 async def agent_endpoint(request: Request, body: AgentRequest) -> StreamingResponse:
     client_ip = _get_client_ip(request)
@@ -129,11 +135,15 @@ async def agent_endpoint(request: Request, body: AgentRequest) -> StreamingRespo
 
     # ── Stream agent response ─────────────────────────────────────────────────
     messages = [{"role": m.role, "content": m.content} for m in body.messages]
+    try:
+        openrouter_skip = int(request.headers.get("X-Model-Skip", "0"))
+    except ValueError:
+        openrouter_skip = 0
 
     async def _stream():
         _done_sent = False
         try:
-            async for event in run_agent(messages, body.session_id):
+            async for event in run_agent(messages, body.session_id, openrouter_skip=openrouter_skip):
                 yield _sse_event(event)
                 if event.get("type") == "done":
                     # run_agent already sent "done"; mark it so the finally block

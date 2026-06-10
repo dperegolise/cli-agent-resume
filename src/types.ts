@@ -142,6 +142,8 @@ export interface SSESearchResultsEvent {
 /** SSE event: stream complete. */
 export interface SSEDoneEvent {
   type: 'done';
+  model?: string;
+  provider?: string;
 }
 
 /** SSE event: error occurred. */

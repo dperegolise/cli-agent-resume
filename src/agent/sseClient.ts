@@ -11,7 +11,7 @@
  */
 
 import { bus, EVENT_TYPES } from '../bus.js';
-import { validatePath } from '../manifest.js';
+import { validatePath, getAllPaths } from '../manifest.js';
 import { markdownToAnsi, wrapAnsi } from './mdAnsi.js';
 import type { AgentTerminal } from './terminal.js';
 import type {
@@ -37,6 +37,7 @@ const BAN_STORAGE_KEY = 'agent_banned_until';
 const ANSI_RED    = '\x1b[31m';
 const ANSI_YELLOW = '\x1b[33m';
 const ANSI_DIM    = '\x1b[2m';
+const ANSI_ITALIC = '\x1b[3m';
 const ANSI_RESET  = '\x1b[0m';
 const ANSI_BOLD   = '\x1b[1m';
 const ANSI_CYAN   = '\x1b[38;5;108m'; // gruvbox aqua — user prompt color
@@ -67,6 +68,10 @@ export class SSEClient {
   // Set to true once search_results have been written, so we insert a blank
   // line before the response text begins.
   private hadSearchResults = false;
+  // How many responses have been shown (for the first-response free-model note).
+  private responseCount = 0;
+  // How many OpenRouter models to skip (advanced via /model command).
+  private modelSkip = 0;
 
   constructor(terminal: AgentTerminal) {
     this.terminal = terminal;
@@ -80,6 +85,18 @@ export class SSEClient {
       const v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });
+  }
+
+  /**
+   * Advance to the next model in the cascade and inform the user.
+   * Wraps around when all models are exhausted.
+   */
+  advanceModel(): void {
+    this.modelSkip++;
+    this.terminal.writeln(
+      ANSI_DIM + `Switched to next model (skip=${this.modelSkip}). Send a message to try it.` + ANSI_RESET,
+    );
+    this.terminal.write('\r\nagent> ');
   }
 
   /** Abort the current streaming request (Ctrl+C). */
@@ -153,7 +170,10 @@ export class SSEClient {
     try {
       response = await fetch(AGENT_ENDPOINT, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Model-Skip': String(this.modelSkip),
+        },
         body: JSON.stringify({
           messages: this.history,
           session_id: this.sessionId,
@@ -353,13 +373,31 @@ export class SSEClient {
       }
 
       case 'done': {
-        void (evt as SSEDoneEvent);
+        const doneEvt = evt as SSEDoneEvent;
         this.stopSpinner();
         // Clear spinner line, optionally insert blank line after search results.
         this.terminal.write('\r\x1b[2K');
         if (this.hadSearchResults) this.terminal.write('\r\n');
-        const formatted = wrapAnsi(markdownToAnsi(this.streamBuf.trim()), this.terminal.cols);
+        const validPaths = new Set(getAllPaths());
+        const formatted = wrapAnsi(markdownToAnsi(this.streamBuf.trim(), validPaths), this.terminal.cols);
         this.terminal.writeln(formatted);
+
+        // Muted provider/model footer
+        if (doneEvt.provider || doneEvt.model) {
+          const label = [doneEvt.provider, doneEvt.model].filter(Boolean).join(' · ');
+          this.terminal.writeln('\r\n' + ANSI_DIM + '⚡ ' + label + ANSI_RESET);
+        }
+
+        // First-response free-model note
+        if (this.responseCount === 0) {
+          this.terminal.writeln(
+            ANSI_DIM + ANSI_ITALIC +
+            'ℹ  Free models power this agent. If responses seem off, try /model to switch.' +
+            ANSI_RESET,
+          );
+        }
+        this.responseCount++;
+
         this.terminal.write('\r\nagent> ');
         this.streamBuf = '';
         this.spinnerFrame = 0;
