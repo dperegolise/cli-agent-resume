@@ -12,7 +12,7 @@
 
 import { bus, EVENT_TYPES } from '../bus.js';
 import { validatePath } from '../manifest.js';
-import { markdownToAnsi } from './mdAnsi.js';
+import { markdownToAnsi, wrapAnsi } from './mdAnsi.js';
 import type { AgentTerminal } from './terminal.js';
 import type {
   ChatMessage,
@@ -358,7 +358,7 @@ export class SSEClient {
         // Clear spinner line, optionally insert blank line after search results.
         this.terminal.write('\r\x1b[2K');
         if (this.hadSearchResults) this.terminal.write('\r\n');
-        const formatted = markdownToAnsi(this.streamBuf.trim());
+        const formatted = wrapAnsi(markdownToAnsi(this.streamBuf.trim()), this.terminal.cols);
         this.terminal.writeln(formatted);
         this.terminal.write('\r\nagent> ');
         this.streamBuf = '';

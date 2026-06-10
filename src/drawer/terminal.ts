@@ -54,6 +54,10 @@ export class CLITerminal {
       theme: toXtermTheme(theme),
     });
     this.term.loadAddon(this.fitAddon);
+    this.term.onSelectionChange(() => {
+      const sel = this.term.getSelection();
+      if (sel) void navigator.clipboard.writeText(sel);
+    });
   }
 
   mount(element: HTMLElement): void {

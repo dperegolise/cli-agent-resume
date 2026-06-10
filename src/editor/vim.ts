@@ -129,6 +129,8 @@ export class VimEditor {
     this.statusBar = new PowerlineBar(statusBarElement);
     this._editorEl = element;
     this._previewEl = document.getElementById('md-preview');
+    // Make the preview focusable so it receives keydown events when clicked
+    this._previewEl?.setAttribute('tabindex', '-1');
 
     // Build the pulsing cursor element (hint text moved to powerline bar)
     const wrap = element.closest<HTMLElement>('#vim-editor-wrap');
@@ -138,13 +140,6 @@ export class VimEditor {
       hint.innerHTML = '<span class="cursor">▋</span>';
       wrap.appendChild(hint);
       this._hintEl = hint;
-
-      // Forward wheel events to the preview div so it scrolls despite pointer-events:none
-      wrap.addEventListener('wheel', (e) => {
-        if (!this._previewEl || this._previewEl.style.display === 'none') return;
-        this._previewEl.scrollTop += e.deltaY;
-        e.preventDefault();
-      }, { passive: false });
     }
 
     const extensions = [
@@ -177,17 +172,30 @@ export class VimEditor {
     // Override :w, :wq, :x, :q to be no-ops or graceful
     this.patchVimCommands();
 
-    // Open the editor whenever vim leaves normal mode (i, v, V, etc.).
-    // Closing back to preview only happens via :q / :wq / :x (patchVimCommands).
-    // We do NOT close on Escape — that's normal vim behaviour within the editor.
+    // Switch to the editor only when the user explicitly enters insert mode (i, a, o…).
+    // Visual mode (mouse selection) is allowed in preview without switching surfaces.
     const cm = getCM(this.view);
     if (cm) {
       cm.on('vim-mode-change', ({ mode }: { mode: string }) => {
-        if (mode !== 'normal' && this._inNormalMode) {
+        if (mode === 'insert' && this._inNormalMode) {
           this._setMode(false);
         }
       });
     }
+
+    // While in preview mode the CM editor is behind the overlay and doesn't
+    // receive keyboard events. Forward insert-mode trigger keys (i, a, o, O, A,
+    // s, c, R…) to the editor so pressing i still enters vim insert mode.
+    this._previewEl?.addEventListener('keydown', (e) => {
+      if (!this._inNormalMode || !this.view) return;
+      const INSERT_TRIGGERS = new Set(['i', 'a', 'o', 'O', 'A', 's', 'S', 'R', 'c', 'C']);
+      if (INSERT_TRIGGERS.has(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        this.view.focus();
+        const cm = getCM(this.view);
+        if (cm) Vim.handleKey(cm, e.key, 'mapping');
+      }
+    });
 
     // Intercept clicks on links inside the preview panel
     this._previewEl?.addEventListener('click', (e) => {
@@ -208,7 +216,7 @@ export class VimEditor {
     this.unsubscribeFocusFile = bus.subscribe<FocusFileEvent>(
       EVENT_TYPES.FOCUS_FILE,
       (event) => {
-        void this.loadAndDisplayFile(event.path, event.lineNumber);
+        void this.loadAndDisplayFile(event.path, event.lineNumber, event.triggerSource);
       },
     );
 
@@ -226,19 +234,24 @@ export class VimEditor {
   /**
    * Load a file by path and update the editor content with a flash transition.
    */
-  async loadAndDisplayFile(path: string, lineNumber?: number): Promise<void> {
+  async loadAndDisplayFile(path: string, lineNumber?: number, triggerSource?: string): Promise<void> {
     if (!this.view || !this.statusBar) return;
 
     this.statusBar.setLoading(true);
 
-    // Flash the entire editor wrap container on file change (not initial load).
-    if (this._currentFile !== 'index.md' || path !== 'index.md') {
-      const wrapEl = this._editorEl?.closest<HTMLElement>('#vim-editor-wrap');
-      if (wrapEl && this._currentFile) {
-        wrapEl.classList.remove('page-flash');
-        // Force reflow so removing+re-adding the class restarts the animation.
-        void wrapEl.offsetWidth;
-        wrapEl.classList.add('page-flash');
+    // Flash only for agent- or CLI-driven navigation, not explorer clicks or
+    // the initial load, and not when returning from preview (triggerSource: 'preview').
+    const isInitialLoad = this._currentFile === 'index.md' && path === 'index.md';
+    if (!isInitialLoad && (triggerSource === 'agent' || triggerSource === 'cli')) {
+      // Flash whichever surface is visible: the preview overlay when in normal
+      // mode, or the editor wrap itself when in insert/edit mode.
+      const flashEl = (this._inNormalMode && this._previewEl)
+        ? this._previewEl
+        : this._editorEl?.closest<HTMLElement>('#vim-editor-wrap');
+      if (flashEl) {
+        flashEl.classList.remove('page-flash');
+        void flashEl.offsetWidth;
+        flashEl.classList.add('page-flash');
       }
     }
 

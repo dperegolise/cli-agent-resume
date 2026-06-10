@@ -66,6 +66,10 @@ export class AgentTerminal {
 
     this.term.loadAddon(this.fitAddon);
     this.term.loadAddon(this.webLinksAddon);
+    this.term.onSelectionChange(() => {
+      const sel = this.term.getSelection();
+      if (sel) void navigator.clipboard.writeText(sel);
+    });
   }
 
   /**
@@ -85,7 +89,7 @@ export class AgentTerminal {
     // FitAddon measures the wrapper, so the padding naturally reduces the
     // column count and causes long lines to wrap earlier.
     const wrapper = element.ownerDocument.createElement('div');
-    wrapper.style.cssText = 'position:absolute;inset:0;padding:10px 42px 10px 14px;box-sizing:border-box;';
+    wrapper.style.cssText = 'position:absolute;inset:0;padding:10px 16px 10px 14px;box-sizing:border-box;';
     element.appendChild(wrapper);
     this.term.open(wrapper);
 

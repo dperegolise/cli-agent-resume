@@ -50,6 +50,19 @@ body {
 #agent-shell .xterm-viewport::-webkit-scrollbar { display: none; }
 #agent-shell .xterm-viewport { scrollbar-width: none; }
 
+/* xterm helper textarea is an invisible input-capture element — force it
+   offscreen so it never affects layout or triggers scrollbars */
+.xterm-helper-textarea {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+}
+
 /* ─── Vertical divider (column 2, all rows) ───────────────────────────────── */
 
 #divider-vertical {
@@ -133,7 +146,8 @@ body {
   100% { background-color: var(--bg-main); box-shadow: inset 0 0 0 1px transparent; }
 }
 
-#vim-editor-wrap.page-flash {
+#vim-editor-wrap.page-flash,
+#md-preview.page-flash {
   animation: page-load-flash 0.55s ease-out forwards;
 }
 
@@ -163,13 +177,10 @@ body {
   line-height: 1.7;
   display: none; /* shown in normal mode */
   z-index: 2;
-  /* pointer-events disabled so clicks reach the CM editor underneath;
-     scroll is handled by forwarding wheel events in vim.ts */
-  pointer-events: none;
+  /* pointer-events enabled so text is selectable and links are clickable */
+  pointer-events: auto;
+  user-select: text;
 }
-
-/* Re-enable pointer events only on links so they remain clickable */
-#md-preview a { pointer-events: auto; }
 
 /* Pulsing cursor + hint shown in normal (preview) mode */
 @keyframes pulse {

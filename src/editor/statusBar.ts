@@ -148,9 +148,25 @@ const CSS = `
 
 .powerline-hint {
   padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: #504945;
   font-style: italic;
   font-size: 10px;
+}
+
+@keyframes powerline-pulse {
+  0%, 100% { opacity: 0.45; }
+  50%       { opacity: 0.15; }
+}
+
+.powerline-cursor {
+  color: var(--tmux-green, #44ff88);
+  animation: powerline-pulse 2.8s ease-in-out infinite;
+  font-style: normal;
+  font-size: 12px;
+  line-height: 1;
 }
 `;
 
@@ -295,7 +311,7 @@ export class PowerlineBar {
         <span class="powerline-ro">[RO]</span>
       </div>
       <div class="powerline-segment" style="height:100%">
-        ${mode === 'NORMAL' ? `<span class="powerline-hint">press i to edit</span>` : ''}
+        ${mode === 'NORMAL' ? `<span class="powerline-hint"><span class="powerline-cursor">▋</span> press i to edit</span>` : ''}
         <span class="powerline-filetype">${escapeHtml(fileType)}</span>
         <span class="powerline-sep powerline-sep-right-accent">${SEP_LEFT}</span>
         <span class="powerline-linecol">${lineNum}:${colNum}</span>
