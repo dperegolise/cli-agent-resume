@@ -91,7 +91,10 @@ async def _routr_available() -> bool:
     url = _routr_url()
     try:
         async with httpx.AsyncClient(timeout=2.0) as client:
-            resp = await client.get(f"{url}/health")
+            # routr's JSON API lives under /api/* — /health (no prefix) falls
+            # through to the embedded SPA and returns HTML 200, which would make
+            # this check pass for the wrong reason. Use the real API endpoint.
+            resp = await client.get(f"{url}/api/health")
             return resp.status_code == 200
     except Exception:
         return False
@@ -255,9 +258,12 @@ async def _call_routr(
     url = _routr_url()
     prompt = _messages_to_prompt(messages)
 
-    # Build payload explicitly — no 'tools' key at all
+    # Build payload explicitly — no 'tools' key at all.
+    # Deliberately NO 'model' field: routr resolves its default route (the
+    # configured cascade) when model is omitted. Sending a literal like "local"
+    # makes routr try to look up a model named "local" and 502 with
+    # "model 'local' does not exist".
     payload: Dict[str, Any] = {
-        "model": "local",
         "prompt": prompt,
         "temperature": 0.7,
         "max_tokens": 2048,
@@ -266,28 +272,32 @@ async def _call_routr(
     assert "tools" not in payload, "tools must not appear in the routr payload"
 
     async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
+        # routr's native cascade endpoint is POST /api/completions (not the
+        # OpenAI-style /v1/completions, which doesn't exist and falls through to
+        # the SPA, returning HTML → JSON-decode error). Request shape
+        # {prompt, max_tokens, temperature} matches models.CompletionRequest.
         resp = await client.post(
-            f"{url}/v1/completions",
+            f"{url}/api/completions",
             json=payload,
         )
         resp.raise_for_status()
         raw = resp.json()
 
-    # Normalise to chat-completions shape so the caller has a uniform interface
-    text = ""
-    if "choices" in raw and raw["choices"]:
+    # routr's CompletionResponse is flat: {"text", "model", "provider", ...} —
+    # not an OpenAI choices[] envelope. Read the top-level "text".
+    text = raw.get("text", "")
+    if not text and isinstance(raw.get("choices"), list) and raw["choices"]:
+        # Defensive fallback for any OpenAI-compat shape.
         choice = raw["choices"][0]
         text = choice.get("text", "") or choice.get("message", {}).get("content", "")
 
     return {
         "_provider": "routr",
-        "_model": "local",
+        "_model": raw.get("model", "local"),
         "choices": [
             {
                 "message": {"role": "assistant", "content": text},
-                "finish_reason": raw.get("choices", [{}])[0].get(
-                    "finish_reason", "stop"
-                ),
+                "finish_reason": "stop",
             }
         ]
     }
