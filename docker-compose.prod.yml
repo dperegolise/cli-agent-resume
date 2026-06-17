@@ -1,0 +1,37 @@
+# Production compose for the CLI portfolio at the peregolise.com apex.
+# PUBLIC site — its Traefik router intentionally carries no Authelia middleware.
+# The agent cascade: OpenRouter -> HuggingFace -> routr (internal, via coolify net).
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8086:80"
+    depends_on:
+      - backend
+    networks:
+      default: {}
+      coolify:
+        aliases: [portfolio-web]
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    restart: unless-stopped
+    environment:
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      HF_API_KEY: ${HF_API_KEY:-}
+      ROUTR_URL: http://routr-provrtr:9420
+      AGENT_RATE_LIMIT: ${AGENT_RATE_LIMIT:-20}
+      AGENT_BAN_DURATION_HOURS: ${AGENT_BAN_DURATION_HOURS:-24}
+    networks:
+      default: {}
+      # Needs to resolve routr-provrtr for the cascade fallback.
+      coolify: {}
+
+networks:
+  coolify:
+    external: true
